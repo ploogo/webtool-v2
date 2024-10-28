@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { generateShades } from '../lib/colorUtils';
 import ColorPaletteSection from './ColorPaletteSection';
 import ColorPreview from './ColorPreview';
@@ -66,6 +66,30 @@ export default function ColorShadeGenerator() {
   });
 
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  // Prepare export data
+  const exportData = useMemo(() => {
+    const palettes = mainPalettes.reduce((acc, palette) => ({
+      ...acc,
+      [palette.name]: {
+        baseColor: palette.color,
+        shades: palette.shades,
+      },
+    }), {});
+
+    const supporting = Object.keys(supportingColors).reduce((acc, key) => {
+      if (key === 'shades') return acc;
+      return {
+        ...acc,
+        [key]: {
+          baseColor: supportingColors[key as keyof Omit<SupportingColors, 'shades'>],
+          shades: supportingColors.shades[key],
+        },
+      };
+    }, {});
+
+    return { palettes, supporting };
+  }, [mainPalettes, supportingColors]);
 
   const handleColorChange = useCallback((id: string, newColor: string) => {
     setMainPalettes(prev => 
@@ -153,38 +177,17 @@ export default function ColorShadeGenerator() {
     },
   };
 
-  // Prepare data for global export
-  const exportPalettes = mainPalettes.reduce((acc, palette) => ({
-    ...acc,
-    [palette.name]: {
-      baseColor: palette.color,
-      shades: palette.shades,
-    },
-  }), {});
-
-  const exportSupporting = Object.keys(supportingColors).reduce((acc, key) => {
-    if (key === 'shades') return acc;
-    return {
-      ...acc,
-      [key]: {
-        baseColor: supportingColors[key as keyof Omit<SupportingColors, 'shades'>],
-        shades: supportingColors.shades[key],
-      },
-    };
-  }, {});
-
   return (
-    <div className="space-y-12">
-      <div className="flex justify-between items-start">
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Color Palette Generator</h1>
-        <GlobalExportButton palettes={exportPalettes} supporting={exportSupporting} />
+        <GlobalExportButton palettes={exportData.palettes} supporting={exportData.supporting} />
       </div>
 
-      <ColorPreview colors={previewColors} />
-
-      <div className="space-y-12">
+      {/* Color Palettes */}
+      <div className="space-y-6">
         {mainPalettes.map((palette) => (
-          <div key={palette.id} className="relative">
+          <div key={palette.id} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             <ColorPaletteSection
               title={palette.name}
               description={palette.description}
@@ -201,41 +204,49 @@ export default function ColorShadeGenerator() {
 
         <button
           onClick={addPalette}
-          className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg 
-            text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors
-            flex items-center justify-center gap-2"
+          className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl
+            text-gray-600 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 
+            transition-all flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Add Custom Palette
         </button>
       </div>
 
-      <div className="space-y-8">
+      {/* Supporting Colors */}
+      <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Supporting Colors</h2>
-          <p className="mt-2 text-gray-600 max-w-2xl">
+          <p className="mt-2 text-gray-600">
             Use these colors sparingly to communicate specific meanings or states in your interface.
           </p>
         </div>
         
-        <div className="space-y-12">
+        <div className="space-y-6">
           {(Object.keys(supportingColors) as Array<keyof Omit<SupportingColors, 'shades'>>).map(key => {
             if (key === 'shades') return null;
             return (
-              <ColorPaletteSection
-                key={key}
-                title={key.charAt(0).toUpperCase() + key.slice(1)}
-                description={getDescription(key)}
-                baseColor={supportingColors[key]}
-                shades={supportingColors.shades[key]}
-                onColorChange={(color) => handleSupportingColorChange(key, color)}
-                onShadeChange={(index, color) => handleSupportingShadeChange(key, index, color)}
-                onCopy={copyToClipboard}
-                copiedIndex={copiedIndex}
-              />
+              <div key={key} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <ColorPaletteSection
+                  title={key.charAt(0).toUpperCase() + key.slice(1)}
+                  description={getDescription(key)}
+                  baseColor={supportingColors[key]}
+                  shades={supportingColors.shades[key]}
+                  onColorChange={(color) => handleSupportingColorChange(key, color)}
+                  onShadeChange={(index, color) => handleSupportingShadeChange(key, index, color)}
+                  onCopy={copyToClipboard}
+                  copiedIndex={copiedIndex}
+                />
+              </div>
             );
           })}
         </div>
+      </div>
+
+      {/* Live Preview */}
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Live Preview</h2>
+        <ColorPreview colors={previewColors} />
       </div>
     </div>
   );
