@@ -1,76 +1,73 @@
 import React, { useState } from 'react';
-import PDFThumbnailGenerator from './components/PDFThumbnailGenerator';
+import ThumbnailGenerator from './components/ThumbnailGenerator';
 import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
 import { FileText, Palette, Link } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'pdf' | 'color' | 'url'>('pdf');
+  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url'>('thumbnails');
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 flex justify-center">
-          <div className="inline-flex rounded-lg bg-white p-1 shadow">
-            <button
-              onClick={() => setActiveTab('pdf')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'pdf'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              PDF Tools
-            </button>
-            <button
-              onClick={() => setActiveTab('color')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'color'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Palette className="w-4 h-4" />
-              Color Tools
-            </button>
-            <button
-              onClick={() => setActiveTab('url')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === 'url'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Link className="w-4 h-4" />
-              URL Tools
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col gap-2 shadow-sm">
+        <button
+          onClick={() => setActiveTab('thumbnails')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeTab === 'thumbnails'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <FileText className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium">Thumbnails</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('color')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeTab === 'color'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Palette className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium">Color Tools</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('url')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeTab === 'url'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Link className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium">URL Tools</span>
+        </button>
+      </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          {activeTab === 'pdf' ? (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                PDF Thumbnail Generator
-              </h1>
-              <PDFThumbnailGenerator />
-            </>
-          ) : activeTab === 'color' ? (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                Color Shade Generator
-              </h1>
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-auto">
+          <div className="max-w-7xl mx-auto p-8">
+            {activeTab === 'thumbnails' ? (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Thumbnail Generator
+                </h1>
+                <ThumbnailGenerator />
+              </>
+            ) : activeTab === 'color' ? (
               <ColorShadeGenerator />
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                SEO URL Generator
-              </h1>
-              <URLGenerator />
-            </>
-          )}
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  SEO URL Generator
+                </h1>
+                <URLGenerator />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
