@@ -3,10 +3,11 @@ import ThumbnailGenerator from './components/ThumbnailGenerator';
 import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
 import ImageEditor from './components/ImageEditor';
-import { FileText, Palette, Link, Crop } from 'lucide-react';
+import TextCaseConverter from './components/TextCaseConverter';
+import { FileText, Palette, Link, Crop, Type } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image'>('thumbnails');
+  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image' | 'text'>('thumbnails');
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -56,6 +57,17 @@ function App() {
           <Crop className="w-5 h-5 flex-shrink-0" />
           <span className="font-medium">Image Editor</span>
         </button>
+        <button
+          onClick={() => setActiveTab('text')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeTab === 'text'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Type className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium">Text Case</span>
+        </button>
       </div>
 
       {/* Main Content */}
@@ -78,12 +90,19 @@ function App() {
                 </h1>
                 <URLGenerator />
               </>
-            ) : (
+            ) : activeTab === 'image' ? (
               <>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">
                   Image Editor
                 </h1>
                 <ImageEditor />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Text Case Converter
+                </h1>
+                <TextCaseConverter />
               </>
             )}
           </div>
