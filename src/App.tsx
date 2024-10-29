@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import ThumbnailGenerator from './components/ThumbnailGenerator';
 import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
-import { FileText, Palette, Link } from 'lucide-react';
+import ImageEditor from './components/ImageEditor';
+import { FileText, Palette, Link, Crop } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url'>('thumbnails');
+  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image'>('thumbnails');
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -44,6 +45,17 @@ function App() {
           <Link className="w-5 h-5 flex-shrink-0" />
           <span className="font-medium">URL Tools</span>
         </button>
+        <button
+          onClick={() => setActiveTab('image')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeTab === 'image'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Crop className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium">Image Editor</span>
+        </button>
       </div>
 
       {/* Main Content */}
@@ -59,12 +71,19 @@ function App() {
               </>
             ) : activeTab === 'color' ? (
               <ColorShadeGenerator />
-            ) : (
+            ) : activeTab === 'url' ? (
               <>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">
                   SEO URL Generator
                 </h1>
                 <URLGenerator />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Image Editor
+                </h1>
+                <ImageEditor />
               </>
             )}
           </div>
