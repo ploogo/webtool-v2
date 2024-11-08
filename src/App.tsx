@@ -10,12 +10,13 @@ import SymbolsToolbar from './components/SymbolsToolbar';
 import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
+import HomePage from './components/HomePage';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, ChevronDown, ChevronRight, LayoutGrid
+  Calculator, Share2, Code, ChevronDown, ChevronRight, LayoutGrid, Home
 } from 'lucide-react';
 
-type ActiveTab = 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
+type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
 
 interface NavCategory {
   name: string;
@@ -29,11 +30,18 @@ interface NavCategory {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('thumbnails');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const navigation: NavCategory[] = [
+    {
+      name: 'General',
+      icon: Home,
+      items: [
+        { id: 'home', name: 'Home', icon: Home, description: 'Welcome to WebTool V2' },
+      ],
+    },
     {
       name: 'Media Tools',
       icon: LayoutGrid,
@@ -175,16 +183,20 @@ function App() {
       <div className="lg:pl-64">
         <main className="min-h-screen pt-16 lg:pt-0">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white">
-                {currentTool?.name}
-              </h1>
-              {currentTool?.description && (
-                <p className="mt-2 text-gray-400">{currentTool.description}</p>
-              )}
-            </div>
+            {activeTab !== 'home' && (
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white">
+                  {currentTool?.name}
+                </h1>
+                {currentTool?.description && (
+                  <p className="mt-2 text-gray-400">{currentTool.description}</p>
+                )}
+              </div>
+            )}
 
-            {activeTab === 'thumbnails' ? (
+            {activeTab === 'home' ? (
+              <HomePage />
+            ) : activeTab === 'thumbnails' ? (
               <ThumbnailGenerator />
             ) : activeTab === 'compress' ? (
               <ImageCompressor />
