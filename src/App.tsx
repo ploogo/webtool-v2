@@ -4,10 +4,11 @@ import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
 import ImageEditor from './components/ImageEditor';
 import TextCaseConverter from './components/TextCaseConverter';
-import { FileText, Palette, Link, Crop, Type, Menu, X } from 'lucide-react';
+import MetaTagGenerator from './components/MetaTagGenerator';
+import { FileText, Palette, Link, Crop, Type, Menu, X, Tags } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image' | 'text'>('thumbnails');
+  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta'>('thumbnails');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigation = [
@@ -16,6 +17,7 @@ function App() {
     { id: 'url', name: 'URL Tools', icon: Link },
     { id: 'image', name: 'Image Editor', icon: Crop },
     { id: 'text', name: 'Text Case', icon: Type },
+    { id: 'meta', name: 'Meta Tags', icon: Tags },
   ] as const;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -111,12 +113,19 @@ function App() {
                 </h1>
                 <ImageEditor />
               </>
-            ) : (
+            ) : activeTab === 'text' ? (
               <>
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">
                   Text Case Converter
                 </h1>
                 <TextCaseConverter />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Meta Tag Generator
+                </h1>
+                <MetaTagGenerator />
               </>
             )}
           </div>
