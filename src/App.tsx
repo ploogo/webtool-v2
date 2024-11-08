@@ -5,10 +5,11 @@ import URLGenerator from './components/URLGenerator';
 import ImageEditor from './components/ImageEditor';
 import TextCaseConverter from './components/TextCaseConverter';
 import MetaTagGenerator from './components/MetaTagGenerator';
-import { FileText, Palette, Link, Crop, Type, Menu, X, Tags } from 'lucide-react';
+import ImageCompressor from './components/ImageCompressor';
+import { FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta'>('thumbnails');
+  const [activeTab, setActiveTab] = useState<'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress'>('thumbnails');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigation = [
@@ -16,6 +17,7 @@ function App() {
     { id: 'color', name: 'Color Tools', icon: Palette },
     { id: 'url', name: 'URL Tools', icon: Link },
     { id: 'image', name: 'Image Editor', icon: Crop },
+    { id: 'compress', name: 'Image Compressor', icon: Image },
     { id: 'text', name: 'Text Case', icon: Type },
     { id: 'meta', name: 'Meta Tags', icon: Tags },
   ] as const;
@@ -112,6 +114,13 @@ function App() {
                   Image Editor
                 </h1>
                 <ImageEditor />
+              </>
+            ) : activeTab === 'compress' ? (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                  Image Compressor
+                </h1>
+                <ImageCompressor />
               </>
             ) : activeTab === 'text' ? (
               <>
