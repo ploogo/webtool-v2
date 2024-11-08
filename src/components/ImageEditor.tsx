@@ -1,44 +1,43 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import FileUploader from './FileUploader';
-import { Download, Loader2, RefreshCw, Maximize2, MinusSquare, Lock, Unlock } from 'lucide-react';
+import { Download, Loader2, Lock, Unlock, Smartphone, Monitor, Maximize2, Info } from 'lucide-react';
 
 interface ImageDimensions {
   width: number;
   height: number;
 }
 
-const IMAGE_FORMATS = [
-  { value: 'image/jpeg', label: 'JPEG', ext: 'jpg', quality: 0.9 },
-  { value: 'image/png', label: 'PNG', ext: 'png' },
-  { value: 'image/webp', label: 'WebP', ext: 'webp', quality: 0.9 },
-  { value: 'image/avif', label: 'AVIF', ext: 'avif', quality: 0.9 },
+const ASPECT_RATIOS = [
+  { value: 1 / 1, label: '1:1 Square', description: 'Perfect for profile pictures and thumbnails' },
+  { value: 16 / 9, label: '16:9 Landscape', description: 'Ideal for YouTube thumbnails and presentations' },
+  { value: 9 / 16, label: '9:16 Portrait', description: 'Great for mobile content and stories' },
+  { value: 4 / 3, label: '4:3 Standard', description: 'Classic format for documents and prints' },
+  { value: 21 / 9, label: '21:9 Ultrawide', description: 'Cinematic format for banner images' },
+  { value: 5 / 4, label: '5:4 Large Format', description: 'Traditional photo printing format' },
 ];
 
 const PRESET_SIZES = [
-  { width: 1200, height: 630, label: 'Social Media (1200×630)' },
-  { width: 1080, height: 1080, label: 'Instagram Square (1080×1080)' },
-  { width: 1080, height: 1350, label: 'Instagram Portrait (1080×1350)' },
-  { width: 1280, height: 720, label: 'HD Video (1280×720)' },
-  { width: 1920, height: 1080, label: 'Full HD (1920×1080)' },
+  { width: 1200, height: 630, label: 'Social Media', description: 'Optimized for social media sharing' },
+  { width: 1080, height: 1080, label: 'Instagram Square', description: 'Perfect for Instagram feed posts' },
+  { width: 1080, height: 1350, label: 'Instagram Portrait', description: 'Maximizes Instagram feed real estate' },
+  { width: 1280, height: 720, label: 'HD Video', description: 'Standard HD video thumbnail size' },
+  { width: 1920, height: 1080, label: 'Full HD', description: 'High-resolution widescreen format' },
 ];
 
-const ASPECT_RATIOS = [
-  { value: 1 / 1, label: '1:1 Square' },
-  { value: 16 / 9, label: '16:9 Landscape' },
-  { value: 9 / 16, label: '9:16 Portrait' },
-  { value: 4 / 3, label: '4:3 Standard' },
-  { value: 3 / 2, label: '3:2 Classic' },
-  { value: 21 / 9, label: '21:9 Ultrawide' },
-  { value: 5 / 4, label: '5:4 Large Format' },
+const OUTPUT_FORMATS = [
+  { value: 'jpeg', label: 'JPEG', description: 'Best for photographs', quality: 0.9 },
+  { value: 'png', label: 'PNG', description: 'Best for graphics with transparency' },
+  { value: 'webp', label: 'WebP', description: 'Modern format with better compression', quality: 0.9 },
+  { value: 'avif', label: 'AVIF', description: 'Next-gen format with best compression', quality: 0.9 },
 ];
 
 export default function ImageEditor() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
-  const [selectedFormat, setSelectedFormat] = useState(IMAGE_FORMATS[0]);
+  const [selectedFormat, setSelectedFormat] = useState(OUTPUT_FORMATS[0]);
   const [customSize, setCustomSize] = useState<ImageDimensions>({ width: 800, height: 600 });
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<number | null>(null);
@@ -46,8 +45,7 @@ export default function ImageEditor() {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [originalDimensions, setOriginalDimensions] = useState<ImageDimensions>({ width: 0, height: 0 });
   
-  const imgRef = useRef<HTMLImageElement>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = React.useRef<HTMLImageElement>(null);
 
   const onSelectFile = useCallback((file: File | null) => {
     if (!file) {
@@ -85,6 +83,66 @@ export default function ImageEditor() {
     
     setCrop(crop);
   }, [customSize.width, customSize.height, maintainAspectRatio]);
+
+  const handleAspectRatioSelect = useCallback((ratio: number) => {
+    setSelectedAspectRatio(ratio);
+    setMaintainAspectRatio(true);
+    
+    if (imgRef.current) {
+      const img = imgRef.current;
+      const imgAspect = img.width / img.height;
+      
+      let width = img.width;
+      let height = img.height;
+      
+      if (imgAspect > ratio) {
+        width = height * ratio;
+      } else {
+        height = width / ratio;
+      }
+      
+      setCrop({
+        unit: 'px',
+        width,
+        height,
+        x: (img.width - width) / 2,
+        y: (img.height - height) / 2,
+      });
+
+      // Update custom size to match aspect ratio
+      const newWidth = Math.round(customSize.height * ratio);
+      setCustomSize(prev => ({
+        width: newWidth,
+        height: prev.height
+      }));
+    }
+  }, [customSize.height]);
+
+  const handlePresetSelect = useCallback((preset: typeof PRESET_SIZES[0]) => {
+    setCustomSize({ width: preset.width, height: preset.height });
+    if (maintainAspectRatio && imgRef.current) {
+      const aspect = preset.width / preset.height;
+      const img = imgRef.current;
+      const imgAspect = img.width / img.height;
+      
+      let width = img.width;
+      let height = img.height;
+      
+      if (imgAspect > aspect) {
+        width = height * aspect;
+      } else {
+        height = width / aspect;
+      }
+      
+      setCrop({
+        unit: 'px',
+        width,
+        height,
+        x: (img.width - width) / 2,
+        y: (img.height - height) / 2,
+      });
+    }
+  }, [maintainAspectRatio]);
 
   const generateDownload = useCallback(async () => {
     if (!imgRef.current || !completedCrop) return;
@@ -132,7 +190,7 @@ export default function ImageEditor() {
       const link = document.createElement('a');
       const filename = selectedFile?.name.replace(/\.[^/.]+$/, '') || 'image';
       link.href = url;
-      link.download = `${filename}-edited.${selectedFormat.ext}`;
+      link.download = `${filename}-edited.${selectedFormat.value}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -143,66 +201,6 @@ export default function ImageEditor() {
       setLoading(false);
     }
   }, [imgRef, completedCrop, customSize, selectedFormat, selectedFile]);
-
-  const handlePresetSelect = useCallback((preset: typeof PRESET_SIZES[0]) => {
-    setCustomSize({ width: preset.width, height: preset.height });
-    if (maintainAspectRatio && imgRef.current) {
-      const aspect = preset.width / preset.height;
-      const img = imgRef.current;
-      const imgAspect = img.width / img.height;
-      
-      let width = img.width;
-      let height = img.height;
-      
-      if (imgAspect > aspect) {
-        width = height * aspect;
-      } else {
-        height = width / aspect;
-      }
-      
-      setCrop({
-        unit: 'px',
-        width,
-        height,
-        x: (img.width - width) / 2,
-        y: (img.height - height) / 2,
-      });
-    }
-  }, [maintainAspectRatio]);
-
-  const handleAspectRatioSelect = useCallback((ratio: number) => {
-    setSelectedAspectRatio(ratio);
-    setMaintainAspectRatio(true);
-    
-    if (imgRef.current) {
-      const img = imgRef.current;
-      const imgAspect = img.width / img.height;
-      
-      let width = img.width;
-      let height = img.height;
-      
-      if (imgAspect > ratio) {
-        width = height * ratio;
-      } else {
-        height = width / ratio;
-      }
-      
-      setCrop({
-        unit: 'px',
-        width,
-        height,
-        x: (img.width - width) / 2,
-        y: (img.height - height) / 2,
-      });
-
-      // Update custom size to match aspect ratio
-      const newWidth = Math.round(customSize.height * ratio);
-      setCustomSize(prev => ({
-        width: newWidth,
-        height: prev.height
-      }));
-    }
-  }, [customSize.height]);
 
   return (
     <div className="space-y-8">
@@ -215,7 +213,7 @@ export default function ImageEditor() {
           />
 
           {previewUrl && (
-            <div className="relative bg-white rounded-lg shadow-lg p-4 overflow-hidden">
+            <div className="relative bg-jet-800 rounded-lg shadow-lg p-4 overflow-hidden">
               <ReactCrop
                 crop={crop}
                 onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -233,7 +231,7 @@ export default function ImageEditor() {
               </ReactCrop>
               
               {originalDimensions.width > 0 && (
-                <div className="absolute bottom-4 left-4 bg-black/75 text-white px-3 py-1.5 rounded-md text-sm">
+                <div className="absolute bottom-4 left-4 bg-jet-900/75 text-white px-3 py-1.5 rounded-md text-sm">
                   {originalDimensions.width} × {originalDimensions.height}px
                 </div>
               )}
@@ -244,22 +242,26 @@ export default function ImageEditor() {
         {/* Controls */}
         <div className="space-y-6">
           {/* Aspect Ratio Selection */}
-          <div className="bg-white rounded-lg shadow p-4 space-y-4">
+          <div className="card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-gray-900">Aspect Ratio</h3>
+              <h3 className="font-medium text-white">Aspect Ratio</h3>
               <button
                 onClick={() => {
                   setMaintainAspectRatio(!maintainAspectRatio);
                   setSelectedAspectRatio(null);
                 }}
-                className={`p-2 rounded-md transition-colors ${
+                className={`btn-icon ${
                   maintainAspectRatio
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'btn-icon-primary'
+                    : 'btn-icon-ghost'
                 }`}
                 title={maintainAspectRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
               >
-                {maintainAspectRatio ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                {maintainAspectRatio ? (
+                  <Lock className="w-4 h-4" />
+                ) : (
+                  <Unlock className="w-4 h-4" />
+                )}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -267,44 +269,50 @@ export default function ImageEditor() {
                 <button
                   key={ratio.value}
                   onClick={() => handleAspectRatioSelect(ratio.value)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     selectedAspectRatio === ratio.value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-neon-500 text-jet-900'
+                      : 'bg-jet-800 text-jet-300 hover:bg-jet-700'
                   }`}
                 >
                   {ratio.label}
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                    {ratio.description}
+                  </div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Format Selection */}
-          <div className="bg-white rounded-lg shadow p-4 space-y-4">
-            <h3 className="font-medium text-gray-900">Export Format</h3>
+          <div className="card space-y-4">
+            <h3 className="font-medium text-white">Export Format</h3>
             <div className="grid grid-cols-2 gap-2">
-              {IMAGE_FORMATS.map((format) => (
+              {OUTPUT_FORMATS.map((format) => (
                 <button
                   key={format.value}
                   onClick={() => setSelectedFormat(format)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     selectedFormat.value === format.value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-neon-500 text-jet-900'
+                      : 'bg-jet-800 text-jet-300 hover:bg-jet-700'
                   }`}
                 >
                   {format.label}
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                    {format.description}
+                  </div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Size Controls */}
-          <div className="bg-white rounded-lg shadow p-4 space-y-4">
-            <h3 className="font-medium text-gray-900">Output Size</h3>
+          <div className="card space-y-4">
+            <h3 className="font-medium text-white">Output Size</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Width</label>
+                <label className="block text-sm font-medium text-jet-300 mb-1">Width</label>
                 <input
                   type="number"
                   value={customSize.width}
@@ -317,12 +325,12 @@ export default function ImageEditor() {
                         : prev.height
                     }));
                   }}
-                  className="w-full rounded-md border-gray-300"
+                  className="input"
                   min="1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
+                <label className="block text-sm font-medium text-jet-300 mb-1">Height</label>
                 <input
                   type="number"
                   value={customSize.height}
@@ -335,25 +343,28 @@ export default function ImageEditor() {
                         : prev.width
                     }));
                   }}
-                  className="w-full rounded-md border-gray-300"
+                  className="input"
                   min="1"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Preset Sizes</h4>
+              <h4 className="text-sm font-medium text-jet-300">Preset Sizes</h4>
               <div className="space-y-2">
                 {PRESET_SIZES.map((preset) => (
                   <button
                     key={`${preset.width}x${preset.height}`}
                     onClick={() => handlePresetSelect(preset)}
-                    className="w-full px-3 py-2 text-left text-sm rounded-md hover:bg-gray-100"
+                    className="w-full px-3 py-2 text-left text-sm rounded-md hover:bg-jet-800 group relative"
                   >
-                    {preset.label}
-                    <span className="text-gray-500 ml-1">
+                    <span className="text-white">{preset.label}</span>
+                    <span className="text-jet-400 ml-1">
                       ({preset.width}×{preset.height})
                     </span>
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                      {preset.description}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -364,11 +375,7 @@ export default function ImageEditor() {
           <button
             onClick={generateDownload}
             disabled={!completedCrop || loading}
-            className={`w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2
-              ${!completedCrop || loading
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+            className="w-full btn-primary"
           >
             {loading ? (
               <>
