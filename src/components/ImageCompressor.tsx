@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, Image as ImageIcon, FileDown, Loader2, RefreshCw } from 'lucide-react';
+import { Upload, Download, Image as ImageIcon, FileDown, Loader2, RefreshCw, Info } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import FileUploader from './FileUploader';
 
@@ -19,10 +19,23 @@ const IMAGE_QUALITY_PRESETS = [
 
 const OUTPUT_FORMATS = [
   { value: 'keep', label: 'Keep Original' },
-  { value: 'jpeg', label: 'JPEG' },
-  { value: 'webp', label: 'WebP' },
-  { value: 'png', label: 'PNG' },
+  { value: 'jpeg', label: 'JPEG', lossy: true },
+  { value: 'webp', label: 'WebP', lossy: true },
+  { value: 'png', label: 'PNG', lossy: false },
 ] as const;
+
+const COMPRESSION_MODES = {
+  lossy: {
+    name: 'Lossy',
+    description: 'Better compression, might reduce quality slightly',
+    formats: ['jpeg', 'webp'],
+  },
+  lossless: {
+    name: 'Lossless',
+    description: 'Preserves original quality, larger file size',
+    formats: ['png'],
+  },
+} as const;
 
 export default function ImageCompressor() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,6 +46,7 @@ export default function ImageCompressor() {
   const [customQuality, setCustomQuality] = useState(70);
   const [customMaxSize, setCustomMaxSize] = useState(1920);
   const [selectedFormat, setSelectedFormat] = useState<typeof OUTPUT_FORMATS[number]>(OUTPUT_FORMATS[0]);
+  const [compressionMode, setCompressionMode] = useState<'lossy' | 'lossless'>('lossy');
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -53,6 +67,13 @@ export default function ImageCompressor() {
     setError(null);
   }, []);
 
+  const handleCompressionModeChange = (mode: 'lossy' | 'lossless') => {
+    setCompressionMode(mode);
+    // Set appropriate default format for the mode
+    const defaultFormat = mode === 'lossy' ? OUTPUT_FORMATS[1] : OUTPUT_FORMATS[3];
+    setSelectedFormat(defaultFormat);
+  };
+
   const compressImage = useCallback(async () => {
     if (!selectedFile) return;
 
@@ -65,7 +86,7 @@ export default function ImageCompressor() {
         maxWidthOrHeight: selectedPreset.name === 'Custom' ? customMaxSize : selectedPreset.maxWidthOrHeight,
         useWebWorker: true,
         fileType: selectedFormat.value === 'keep' ? undefined : `image/${selectedFormat.value}`,
-        quality: selectedPreset.name === 'Custom' ? customQuality / 100 : selectedPreset.quality,
+        quality: compressionMode === 'lossless' ? 1 : (selectedPreset.name === 'Custom' ? customQuality / 100 : selectedPreset.quality),
       };
 
       const compressedFile = await imageCompression(selectedFile, options);
@@ -83,7 +104,7 @@ export default function ImageCompressor() {
     } finally {
       setLoading(false);
     }
-  }, [selectedFile, selectedPreset, customQuality, customMaxSize, selectedFormat]);
+  }, [selectedFile, selectedPreset, customQuality, customMaxSize, selectedFormat, compressionMode]);
 
   const downloadCompressedImage = useCallback(() => {
     if (!compressedImage) return;
@@ -116,59 +137,98 @@ export default function ImageCompressor() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
                 <h3 className="font-medium text-gray-900">Compression Settings</h3>
 
-                {/* Quality Presets */}
+                {/* Compression Mode */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Quality Preset
+                    Compression Mode
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {IMAGE_QUALITY_PRESETS.map((preset) => (
+                    {(Object.entries(COMPRESSION_MODES) as [keyof typeof COMPRESSION_MODES, typeof COMPRESSION_MODES[keyof typeof COMPRESSION_MODES]][]).map(([mode, info]) => (
                       <button
-                        key={preset.name}
-                        onClick={() => setSelectedPreset(preset)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          selectedPreset.name === preset.name
+                        key={mode}
+                        onClick={() => handleCompressionModeChange(mode)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative group ${
+                          compressionMode === mode
                             ? 'bg-blue-600 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
-                        {preset.name}
+                        {info.name}
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-black/75 text-white text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                          {info.description}
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Custom Settings */}
-                {selectedPreset.name === 'Custom' && (
-                  <div className="space-y-4">
+                {/* Quality Settings (only for lossy compression) */}
+                {compressionMode === 'lossy' && (
+                  <>
+                    {/* Quality Presets */}
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Quality ({customQuality}%)
+                        Quality Preset
                       </label>
-                      <input
-                        type="range"
-                        min="1"
-                        max="100"
-                        value={customQuality}
-                        onChange={(e) => setCustomQuality(Number(e.target.value))}
-                        className="w-full"
-                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        {IMAGE_QUALITY_PRESETS.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => setSelectedPreset(preset)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              selectedPreset.name === preset.name
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {preset.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Max Width/Height (px)
-                      </label>
-                      <input
-                        type="number"
-                        value={customMaxSize}
-                        onChange={(e) => setCustomMaxSize(Number(e.target.value))}
-                        min="100"
-                        max="4096"
-                        className="w-full rounded-lg border-gray-300"
-                      />
-                    </div>
-                  </div>
+                    {/* Custom Settings */}
+                    {selectedPreset.name === 'Custom' && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Quality
+                            </label>
+                            <span className="text-sm text-gray-500">
+                              {customQuality}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            value={customQuality}
+                            onChange={(e) => setCustomQuality(Number(e.target.value))}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500">
+                            <span>Smaller file</span>
+                            <span>Better quality</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Max Width/Height (px)
+                          </label>
+                          <input
+                            type="number"
+                            value={customMaxSize}
+                            onChange={(e) => setCustomMaxSize(Number(e.target.value))}
+                            min="100"
+                            max="4096"
+                            className="w-full rounded-lg border-gray-300"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Output Format */}
@@ -183,11 +243,16 @@ export default function ImageCompressor() {
                     )}
                     className="w-full rounded-lg border-gray-300"
                   >
-                    {OUTPUT_FORMATS.map((format) => (
-                      <option key={format.value} value={format.value}>
-                        {format.label}
-                      </option>
-                    ))}
+                    <option value="keep">Keep Original</option>
+                    {OUTPUT_FORMATS.slice(1).map((format) => {
+                      const isValidFormat = compressionMode === 'lossy' ? format.lossy : !format.lossy;
+                      if (!isValidFormat) return null;
+                      return (
+                        <option key={format.value} value={format.value}>
+                          {format.label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
