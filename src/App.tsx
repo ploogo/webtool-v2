@@ -96,13 +96,13 @@ function App() {
     .find(item => item.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-navy-800">
+    <div className="min-h-screen bg-jet-950">
       {/* Mobile Header */}
-      <div className="lg:hidden bg-navy-700 border-b border-navy-600 fixed top-0 left-0 right-0 z-30">
+      <div className="lg:hidden bg-jet-900/50 backdrop-blur-sm border-b border-jet-800/50 fixed top-0 left-0 right-0 z-30">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-navy-600 rounded-lg"
+            className="p-2 hover:bg-jet-800 rounded-lg"
           >
             <Menu className="w-6 h-6 text-white" />
           </button>
@@ -114,14 +114,14 @@ function App() {
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-jet-950/80 backdrop-blur-sm z-40 lg:hidden"
           onClick={toggleSidebar}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-navy-700 border-r border-navy-600 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-jet-900/50 backdrop-blur-sm border-r border-jet-800/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -129,9 +129,9 @@ function App() {
           <h1 className="text-xl font-bold text-white">WebTool V2</h1>
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-navy-600 rounded-lg"
+            className="p-2 hover:bg-jet-800 rounded-lg"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5 text-jet-300" />
           </button>
         </div>
 
@@ -140,7 +140,7 @@ function App() {
             <div key={category.name} className="mb-2">
               <button
                 onClick={() => toggleCategory(category.name)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 rounded-lg hover:bg-navy-600 hover:text-white"
+                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-jet-300 rounded-lg hover:bg-jet-800 hover:text-white"
               >
                 <div className="flex items-center gap-2">
                   <category.icon className="w-5 h-5" />
@@ -164,8 +164,8 @@ function App() {
                       }}
                       className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
                         activeTab === item.id
-                          ? 'bg-brand-coral text-white'
-                          : 'text-gray-300 hover:bg-navy-600 hover:text-white'
+                          ? 'bg-neon-500 text-jet-900 font-semibold'
+                          : 'text-jet-300 hover:bg-jet-800 hover:text-white'
                       }`}
                     >
                       <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -189,7 +189,7 @@ function App() {
                   {currentTool?.name}
                 </h1>
                 {currentTool?.description && (
-                  <p className="mt-2 text-gray-400">{currentTool.description}</p>
+                  <p className="mt-2 text-jet-300">{currentTool.description}</p>
                 )}
               </div>
             )}
