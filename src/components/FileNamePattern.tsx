@@ -17,13 +17,13 @@ export default function FileNamePattern({ onChange, defaultPattern = 'page-{n}' 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-300">
           Filename Pattern
         </label>
         <div className="relative group">
           <Info className="w-4 h-4 text-gray-400 cursor-help" />
-          <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-white rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-30">
-            <p className="text-xs text-gray-600">
+          <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-jet-800 rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-30">
+            <p className="text-xs text-gray-300">
               Use {'{n}'} for page number. Example: <br />
               "document-{'{n}'}" becomes "document-1.jpg"
             </p>
@@ -35,9 +35,9 @@ export default function FileNamePattern({ onChange, defaultPattern = 'page-{n}' 
         value={pattern}
         onChange={(e) => handleChange(e.target.value)}
         placeholder="Enter filename pattern"
-        className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        className="input"
       />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-400">
         Preview: {pattern.replace('{n}', '1')}.jpg
       </p>
     </div>

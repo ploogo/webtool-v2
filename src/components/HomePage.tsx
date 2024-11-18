@@ -1,7 +1,11 @@
 import React from 'react';
 import { ArrowRight, Wand2, Zap, Shield, LayoutGrid, Code, Palette } from 'lucide-react';
 
-export default function HomePage() {
+interface HomePageProps {
+  onGetStarted: () => void;
+}
+
+export default function HomePage({ onGetStarted }: HomePageProps) {
   return (
     <div className="space-y-24 pb-24">
       {/* Hero Section */}
@@ -9,7 +13,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 relative z-10">
           <div className="text-center space-y-8">
             <h1 className="text-5xl md:text-6xl font-bold text-white max-w-4xl mx-auto">
-              Transform Your <span className="text-brand-coral">Digital Tools</span> Into 
+              Transform Your <span className="text-neon-500">Digital Tools</span> Into 
               Powerful Solutions
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -17,11 +21,11 @@ export default function HomePage() {
               to optimize your web presence and boost productivity.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="btn-primary text-base">
+              <button onClick={onGetStarted} className="btn-primary text-base">
                 Get Started
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="btn-secondary text-base">
+              <button onClick={onGetStarted} className="btn-secondary text-base">
                 View All Tools
                 <LayoutGrid className="w-5 h-5" />
               </button>
@@ -45,8 +49,8 @@ export default function HomePage() {
           {features.map((feature) => (
             <div key={feature.title} className="card card-hover">
               <div className="flex items-center gap-4 mb-4">
-                <div className="p-2 rounded-lg bg-brand-coral bg-opacity-10">
-                  <feature.icon className="w-6 h-6 text-brand-coral" />
+                <div className="p-2 rounded-lg bg-neon-500 bg-opacity-10">
+                  <feature.icon className="w-6 h-6 text-neon-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
               </div>
@@ -66,8 +70,8 @@ export default function HomePage() {
             <div className="space-y-6">
               {benefits.map((benefit) => (
                 <div key={benefit.title} className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-coral bg-opacity-10 flex items-center justify-center">
-                    <benefit.icon className="w-5 h-5 text-brand-coral" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neon-500 bg-opacity-10 flex items-center justify-center">
+                    <benefit.icon className="w-5 h-5 text-neon-500" />
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-white mb-2">
@@ -80,8 +84,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="relative">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-brand-coral to-coral-700 p-1">
-              <div className="absolute inset-0 bg-navy-800 rounded-2xl m-1" />
+            <div className="aspect-square rounded-2xl bg-gradient-to-br from-neon-500 to-neon-600 p-1">
+              <div className="absolute inset-0 bg-jet-950 rounded-2xl m-1" />
             </div>
           </div>
         </div>
@@ -89,7 +93,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="card bg-gradient-to-r from-brand-coral to-coral-700 border-0">
+        <div className="card bg-gradient-to-r from-neon-500 to-neon-600 border-0">
           <div className="text-center space-y-6">
             <h2 className="text-3xl font-bold text-white">
               Ready to Streamline Your Workflow?
@@ -97,7 +101,7 @@ export default function HomePage() {
             <p className="text-xl text-white text-opacity-90 max-w-2xl mx-auto">
               Join thousands of professionals who are already saving time and improving their results.
             </p>
-            <button className="btn bg-white text-coral-700 hover:bg-gray-100 text-base">
+            <button onClick={onGetStarted} className="btn bg-white text-neon-600 hover:bg-gray-100 text-base">
               Get Started Now
               <ArrowRight className="w-5 h-5" />
             </button>

@@ -22,26 +22,26 @@ export default function PDFUploader({ onFileSelect, currentFileName }: PDFUpload
 
   return (
     <div className="w-full">
-      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-jet-700 border-dashed rounded-lg cursor-pointer bg-jet-800/50 hover:bg-jet-800">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           {currentFileName ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">{currentFileName}</span>
+              <span className="text-sm text-gray-300">{currentFileName}</span>
               <button
                 onClick={handleClear}
-                className="p-1 hover:bg-gray-200 rounded-full"
+                className="p-1 hover:bg-jet-700 rounded-full"
                 title="Clear selection"
               >
-                <X className="w-4 h-4 text-gray-600" />
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             </div>
           ) : (
             <>
-              <Upload className="w-8 h-8 mb-2 text-gray-500" />
-              <p className="mb-2 text-sm text-gray-500">
+              <Upload className="w-8 h-8 mb-2 text-gray-400" />
+              <p className="mb-2 text-sm text-gray-300">
                 <span className="font-semibold">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-gray-500">PDF files only</p>
+              <p className="text-xs text-gray-400">PDF files only</p>
             </>
           )}
         </div>
