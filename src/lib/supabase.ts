@@ -1,2 +1,15 @@
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '../types/supabase';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+
+export const hasValidCredentials = () => {
+  return supabaseUrl !== undefined && supabaseAnonKey !== undefined;
+};
