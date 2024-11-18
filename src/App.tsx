@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ThumbnailGenerator from './components/ThumbnailGenerator';
 import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
@@ -11,12 +11,16 @@ import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
 import HomePage from './components/HomePage';
+import AuthForm from './components/auth/AuthForm';
+import { useAuthStore } from './lib/store';
+import { supabase, hasValidCredentials } from './lib/supabase';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, ChevronDown, ChevronRight, LayoutGrid, Home
+  Calculator, Share2, Code, LayoutGrid, Home,
+  LogOut, AlertTriangle
 } from 'lucide-react';
 
-type ActiveTab = 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
+type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
 
 interface NavCategory {
   name: string;
@@ -29,13 +33,20 @@ interface NavCategory {
   }[];
 }
 
-function App() {
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab | null>(null);
+export default function App() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
 
   const navigation: NavCategory[] = [
+    {
+      name: 'General',
+      icon: Home,
+      items: [
+        { id: 'home', name: 'Home', icon: Home, description: 'Welcome to WebTool V2' },
+      ],
+    },
     {
       name: 'Media Tools',
       icon: LayoutGrid,
@@ -79,19 +90,77 @@ function App() {
     },
   ];
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const toggleCategory = (categoryName: string) => {
-    setExpandedCategory(expandedCategory === categoryName ? null : categoryName);
-  };
+  useEffect(() => {
+    if (!hasValidCredentials()) {
+      console.warn('Missing Supabase credentials. Please check your environment variables.');
+    }
 
-  const currentTool = navigation
-    .flatMap(category => category.items)
-    .find(item => item.id === activeTab);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        useAuthStore.setState({ user: {
+          id: session.user.id,
+          email: session.user.email!,
+          username: '', // We'll fetch this from the profile
+        }});
+        
+        // Fetch user profile
+        supabase
+          .from('user_profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              useAuthStore.setState(state => ({
+                user: { ...state.user!, username: data.username },
+              }));
+            }
+          });
+      }
+      setLoading(false);
+    });
 
-  if (!showDashboard) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        useAuthStore.setState({ user: null });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
     return (
-      <HomePage onGetStarted={() => setShowDashboard(true)} />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-neon-500"></div>
+      </div>
     );
+  }
+
+  if (!hasValidCredentials()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto" />
+          <h1 className="text-2xl font-bold text-white">Configuration Required</h1>
+          <p className="text-gray-400">
+            Please set up your Supabase credentials in the environment variables:
+          </p>
+          <div className="bg-jet-800 p-4 rounded-lg text-left space-y-2 font-mono text-sm">
+            <p className="text-neon-500">VITE_SUPABASE_URL=your_supabase_url</p>
+            <p className="text-neon-500">VITE_SUPABASE_ANON_KEY=your_supabase_anon_key</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  if (activeTab === 'home') {
+    return <HomePage onGetStarted={() => setActiveTab('thumbnails')} />;
   }
 
   return (
@@ -100,7 +169,7 @@ function App() {
       <div className="lg:hidden bg-jet-900/50 backdrop-blur-sm border-b border-jet-800/50 fixed top-0 left-0 right-0 z-30">
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={toggleSidebar}
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 hover:bg-jet-800 rounded-lg"
           >
             <Menu className="w-6 h-6 text-white" />
@@ -114,7 +183,7 @@ function App() {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-jet-950/80 backdrop-blur-sm z-40 lg:hidden"
-          onClick={toggleSidebar}
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
@@ -127,67 +196,38 @@ function App() {
         <div className="flex items-center justify-between p-4 lg:hidden">
           <h1 className="text-xl font-bold text-white">WebTool V2</h1>
           <button
-            onClick={toggleSidebar}
+            onClick={() => setIsSidebarOpen(false)}
             className="p-2 hover:bg-jet-800 rounded-lg"
           >
             <X className="w-5 h-5 text-jet-300" />
           </button>
         </div>
 
-        <nav className="px-2 py-4">
-          <button
-            onClick={() => {
-              setShowDashboard(false);
-              setIsSidebarOpen(false);
-            }}
-            className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors mb-4 ${
-              !showDashboard
-                ? 'bg-neon-500 text-jet-900 font-semibold'
-                : 'text-jet-300 hover:bg-jet-800 hover:text-white'
-            }`}
-          >
-            <Home className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate">Home</span>
-          </button>
-
+        <nav className="px-2 py-4 space-y-4">
           {navigation.map((category) => (
-            <div key={category.name} className="mb-2">
-              <button
-                onClick={() => toggleCategory(category.name)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-jet-300 rounded-lg hover:bg-jet-800 hover:text-white"
-              >
-                <div className="flex items-center gap-2">
-                  <category.icon className="w-5 h-5" />
-                  <span>{category.name}</span>
-                </div>
-                {expandedCategory === category.name ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-
-              {expandedCategory === category.name && (
-                <div className="mt-1 ml-2 space-y-1">
-                  {category.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        setIsSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
-                        activeTab === item.id
-                          ? 'bg-neon-500 text-jet-900 font-semibold'
-                          : 'text-jet-300 hover:bg-jet-800 hover:text-white'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{item.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div key={category.name} className="space-y-1">
+              <div className="px-3 py-2 text-sm font-medium text-jet-300">
+                {category.name}
+              </div>
+              <div className="space-y-1">
+                {category.items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                      activeTab === item.id
+                        ? 'bg-neon-500 text-jet-900 font-semibold'
+                        : 'text-jet-300 hover:bg-jet-800 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{item.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           ))}
         </nav>
@@ -197,14 +237,18 @@ function App() {
       <div className="lg:pl-64">
         <main className="min-h-screen pt-16 lg:pt-0">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            {activeTab !== null && (
+            {activeTab !== 'home' && (
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-white">
-                  {currentTool?.name}
+                  {navigation
+                    .flatMap(category => category.items)
+                    .find(item => item.id === activeTab)?.name}
                 </h1>
-                {currentTool?.description && (
-                  <p className="mt-2 text-jet-300">{currentTool.description}</p>
-                )}
+                <p className="mt-2 text-jet-300">
+                  {navigation
+                    .flatMap(category => category.items)
+                    .find(item => item.id === activeTab)?.description}
+                </p>
               </div>
             )}
 
@@ -228,14 +272,12 @@ function App() {
               <UTMBuilder />
             ) : activeTab === 'schema' ? (
               <SchemaGenerator />
-            ) : activeTab === 'meta' ? (
+            ) : (
               <MetaTagGenerator />
-            ) : null}
+            )}
           </div>
         </main>
       </div>
     </div>
   );
 }
-
-export default App;
