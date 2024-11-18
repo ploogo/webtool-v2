@@ -177,7 +177,7 @@ export default function ImageCompressor() {
                             onClick={() => setSelectedPreset(preset)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               selectedPreset.name === preset.name
-                                ? 'bg-blue-600 text-white'
+                                ? 'bg-neon-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                           >

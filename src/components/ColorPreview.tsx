@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LineChart, Calendar, Search, Bell, Menu, ChevronDown, Settings } from 'lucide-react';
 
 interface ColorPreviewProps {
@@ -16,6 +16,15 @@ interface ColorPreviewProps {
 }
 
 export default function ColorPreview({ colors }: ColorPreviewProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
+
   return (
     <div className="mt-12 rounded-lg overflow-hidden shadow-xl border border-gray-200">
       {/* Header/Navigation */}

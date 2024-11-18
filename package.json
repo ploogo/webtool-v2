@@ -10,15 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.3",
-    "lucide-react": "^0.344.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "pdfjs-dist": "^4.0.379",
-    "browser-image-compression": "^2.0.2",
-    "react-image-crop": "^11.0.5",
-    "zustand": "^4.5.0",
-    "date-fns": "^3.3.1"
+    "@supabase/supabase-js": "2.39.3",
+    "lucide-react": "0.344.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "pdfjs-dist": "4.0.379",
+    "browser-image-compression": "2.0.2",
+    "react-image-crop": "11.0.5",
+    "zustand": "4.5.0",
+    "date-fns": "3.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
