@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ThumbnailGenerator from './components/ThumbnailGenerator';
 import ColorShadeGenerator from './components/ColorShadeGenerator';
 import URLGenerator from './components/URLGenerator';
@@ -11,13 +11,11 @@ import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
 import HomePage from './components/HomePage';
-import AuthForm from './components/auth/AuthForm';
 import { useAuthStore } from './lib/store';
-import { supabase, hasValidCredentials } from './lib/supabase';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
   Calculator, Share2, Code, LayoutGrid, Home,
-  LogOut, AlertTriangle
+  LogOut
 } from 'lucide-react';
 
 type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
@@ -36,7 +34,6 @@ interface NavCategory {
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
 
   const navigation: NavCategory[] = [
@@ -89,75 +86,6 @@ export default function App() {
       ],
     },
   ];
-
-  useEffect(() => {
-    if (!hasValidCredentials()) {
-      console.warn('Missing Supabase credentials. Please check your environment variables.');
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        useAuthStore.setState({ user: {
-          id: session.user.id,
-          email: session.user.email!,
-          username: '', // We'll fetch this from the profile
-        }});
-        
-        // Fetch user profile
-        supabase
-          .from('user_profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              useAuthStore.setState(state => ({
-                user: { ...state.user!, username: data.username },
-              }));
-            }
-          });
-      }
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        useAuthStore.setState({ user: null });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-neon-500"></div>
-      </div>
-    );
-  }
-
-  if (!hasValidCredentials()) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md w-full space-y-4 text-center">
-          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Configuration Required</h1>
-          <p className="text-gray-400">
-            Please set up your Supabase credentials in the environment variables:
-          </p>
-          <div className="bg-jet-800 p-4 rounded-lg text-left space-y-2 font-mono text-sm">
-            <p className="text-neon-500">VITE_SUPABASE_URL=your_supabase_url</p>
-            <p className="text-neon-500">VITE_SUPABASE_ANON_KEY=your_supabase_anon_key</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthForm />;
-  }
 
   if (activeTab === 'home') {
     return <HomePage onGetStarted={() => setActiveTab('thumbnails')} />;

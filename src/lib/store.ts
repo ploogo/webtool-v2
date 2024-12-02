@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { supabase } from './supabase';
-import { addDays, isPast } from 'date-fns';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
@@ -62,56 +60,32 @@ export const TIER_LIMITS = {
   },
 };
 
+// Mock user for development
+const MOCK_USER: User = {
+  id: 'mock-user-id',
+  email: 'demo@example.com',
+  username: 'demo',
+  subscriptionTier: 'pro',
+  subscriptionEndsAt: new Date('2025-12-31'),
+  usageThisMonth: {
+    pdfConversions: 0,
+    imageCompressions: 0,
+  },
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
+  user: MOCK_USER, // Use mock user by default
   loading: false,
   error: null,
 
   signIn: async (email: string, password: string) => {
     try {
       set({ loading: true, error: null });
-      
-      // First, check if the user exists in auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error('No user found');
-      }
-
-      // Then, check if the user has a profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError || !profileData) {
-        // If no profile exists, sign out and show error
-        await supabase.auth.signOut();
-        throw new Error('Account not found. Please sign up first.');
-      }
-
-      set({
-        user: {
-          id: authData.user.id,
-          email: authData.user.email!,
-          username: profileData.username,
-          subscriptionTier: profileData.subscription_tier || 'free',
-          subscriptionEndsAt: profileData.subscription_ends_at ? new Date(profileData.subscription_ends_at) : null,
-          usageThisMonth: profileData.usage_this_month || {
-            pdfConversions: 0,
-            imageCompressions: 0,
-          },
-        },
-      });
+      // Mock successful login
+      set({ user: MOCK_USER });
     } catch (error) {
       set({ error: (error as Error).message });
-      throw error; // Re-throw to handle in the component
+      throw error;
     } finally {
       set({ loading: false });
     }
@@ -120,66 +94,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email: string, password: string, username: string) => {
     try {
       set({ loading: true, error: null });
-
-      // Check if username is already taken
-      const { data: existingUser } = await supabase
-        .from('user_profiles')
-        .select('username')
-        .eq('username', username)
-        .single();
-
-      if (existingUser) {
-        throw new Error('Username is already taken');
-      }
-
-      // Create auth user
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error('Failed to create account');
-
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert([
-          {
-            id: data.user.id,
-            username,
-            email,
-            subscription_tier: 'free',
-            subscription_ends_at: null,
-            usage_this_month: {
-              pdfConversions: 0,
-              imageCompressions: 0,
-            },
-          },
-        ]);
-
-      if (profileError) {
-        // If profile creation fails, attempt to delete the auth user
-        await supabase.auth.admin.deleteUser(data.user.id);
-        throw new Error('Failed to create profile. Please try again.');
-      }
-
-      set({
-        user: {
-          id: data.user.id,
-          email: data.user.email!,
-          username,
-          subscriptionTier: 'free',
-          subscriptionEndsAt: null,
-          usageThisMonth: {
-            pdfConversions: 0,
-            imageCompressions: 0,
-          },
-        },
-      });
+      // Mock successful registration
+      set({ user: MOCK_USER });
     } catch (error) {
       set({ error: (error as Error).message });
-      throw error; // Re-throw to handle in the component
+      throw error;
     } finally {
       set({ loading: false });
     }
@@ -188,8 +107,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ loading: true, error: null });
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
       set({ user: null });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -218,13 +135,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         [type]: currentUsage + 1,
       };
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ usage_this_month: newUsage })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
       set({
         user: {
           ...user,
@@ -242,11 +152,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkSubscriptionAccess: (feature: keyof typeof TIER_LIMITS) => {
     const user = get().user;
     if (!user) return false;
-
-    if (user.subscriptionTier !== 'free' && user.subscriptionEndsAt && isPast(user.subscriptionEndsAt)) {
-      return TIER_LIMITS[feature].free;
-    }
-
     return TIER_LIMITS[feature][user.subscriptionTier];
   },
 
@@ -256,24 +161,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       set({ loading: true, error: null });
-
-      const subscriptionEndsAt = addDays(new Date(), 30);
-
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          subscription_tier: tier,
-          subscription_ends_at: subscriptionEndsAt.toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
       set({
         user: {
           ...user,
           subscriptionTier: tier,
-          subscriptionEndsAt,
+          subscriptionEndsAt: new Date('2025-12-31'),
         },
       });
     } catch (error) {
