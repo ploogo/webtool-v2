@@ -34,7 +34,7 @@ export default function PagePreview({ pageNumber, dataUrl, isSelected, onToggle,
           <span className="text-sm text-gray-400">No preview</span>
         </div>
       )}
-      <div className="absolute bottom-0 inset-x-0 bg-jet-900/90 h-8 flex items-center justify-center">
+      <div className="absolute bottom-0 inset-x-0 bg-jet-900/90 backdrop-blur-sm h-8 flex items-center justify-center">
         <span className="text-sm text-gray-300 font-medium">Page {pageNumber}</span>
       </div>
     </button>

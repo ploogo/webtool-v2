@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Settings, PackageCheck } from 'lucide-react';
+import { Download, Settings, PackageCheck, Info } from 'lucide-react';
 import FileNamePattern from './FileNamePattern';
 
 interface Thumbnail {
@@ -61,16 +61,20 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">Generated Thumbnails</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium text-white">Generated Thumbnails</h3>
+          <div className="relative group">
+            <Info className="w-4 h-4 text-gray-400 cursor-help" />
+            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-64 p-3 bg-jet-800 text-sm text-gray-300 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+              Click individual thumbnails to download, or use the export options to download all at once.
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleBatchExport}
             disabled={exporting}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              exporting
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+            className={`btn-primary ${exporting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {exporting ? (
               <>
@@ -87,10 +91,10 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
           <div className="relative">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
+              className="btn-secondary"
             >
               <Settings className="w-4 h-4" />
-              <span className="text-sm">Export Settings</span>
+              <span>Export Settings</span>
             </button>
 
             {showSettings && (
@@ -99,20 +103,20 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
                   className="fixed inset-0 z-10"
                   onClick={() => setShowSettings(false)}
                 />
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-20 p-4 space-y-4">
+                <div className="absolute right-0 mt-2 w-64 bg-jet-800 rounded-lg shadow-lg z-20 p-4 space-y-4 border border-jet-700">
                   <FileNamePattern
                     onChange={setFilePattern}
                     defaultPattern={filePattern}
                   />
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-300">
                       Format
                     </label>
                     <select
                       value={selectedFormat}
                       onChange={(e) => setSelectedFormat(e.target.value)}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="input"
                     >
                       {IMAGE_FORMATS.map((format) => (
                         <option key={format.value} value={format.value}>
@@ -123,13 +127,13 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-300">
                       Size
                     </label>
                     <select
                       value={selectedSize}
                       onChange={(e) => setSelectedSize(Number(e.target.value))}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="input"
                     >
                       {SIZES.map((size) => (
                         <option key={size.value} value={size.value}>
@@ -151,17 +155,17 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
             <img
               src={dataUrl}
               alt={`Page ${pageNumber}`}
-              className="w-full rounded-lg shadow-md"
+              className="w-full rounded-lg shadow-md bg-jet-800"
             />
             <button
               onClick={() => onDownload(dataUrl, pageNumber, selectedFormat, selectedSize, getFilename(pageNumber))}
-              className="absolute top-2 right-2 p-2 bg-white/90 rounded-full shadow-md 
-                opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 p-2 bg-jet-900/90 backdrop-blur-sm rounded-full shadow-md 
+                opacity-0 group-hover:opacity-100 transition-opacity hover:bg-jet-800"
               title="Download thumbnail"
             >
-              <Download className="w-4 h-4 text-gray-700" />
+              <Download className="w-4 h-4 text-gray-300" />
             </button>
-            <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-black/75 text-white rounded-md text-sm">
+            <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-jet-900/90 backdrop-blur-sm text-gray-300 rounded-md text-sm">
               {getFilename(pageNumber)}.{selectedFormat}
             </div>
           </div>
