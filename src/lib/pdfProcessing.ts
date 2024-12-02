@@ -7,14 +7,17 @@ export interface PDFValidationResult {
     size: number;
     pages?: number;
     version?: string;
+    isEncrypted?: boolean;
+    isCorrupted?: boolean;
   };
 }
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const MIN_FILE_SIZE = 100; // 100 bytes
 const SUPPORTED_PDF_VERSIONS = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '2.0'];
 
 export async function validatePDF(file: File): Promise<PDFValidationResult> {
-  // Check file type
+  // Basic file validation
   if (!file.type.includes('pdf')) {
     return {
       isValid: false,
@@ -23,7 +26,7 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
     };
   }
 
-  // Check file size
+  // Size validation
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
@@ -32,41 +35,105 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
     };
   }
 
+  if (file.size < MIN_FILE_SIZE) {
+    return {
+      isValid: false,
+      error: 'File appears to be empty or corrupted.',
+      details: { size: file.size }
+    };
+  }
+
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    // Check for PDF header signature
+    const header = new Uint8Array(arrayBuffer.slice(0, 5));
+    const isPDF = String.fromCharCode(...header) === '%PDF-';
+    if (!isPDF) {
+      return {
+        isValid: false,
+        error: 'Invalid PDF format. File does not have a valid PDF header.',
+        details: { size: file.size, isCorrupted: true }
+      };
+    }
+
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    
+    // Handle password-protected PDFs
+    loadingTask.onPassword = () => {
+      throw new Error('PASSWORD_PROTECTED');
+    };
+
+    const pdf = await loadingTask.promise;
+    const version = pdf.version;
+
+    // Validate PDF version
+    if (!SUPPORTED_PDF_VERSIONS.includes(version)) {
+      return {
+        isValid: false,
+        error: `Unsupported PDF version ${version}. Please use PDF version 1.0-2.0.`,
+        details: { size: file.size, version }
+      };
+    }
+
+    // Check if document can be opened and pages can be accessed
+    try {
+      const firstPage = await pdf.getPage(1);
+      await firstPage.getOperatorList(); // Verify page content is readable
+    } catch (e) {
+      return {
+        isValid: false,
+        error: 'PDF content appears to be corrupted or inaccessible.',
+        details: { size: file.size, version, isCorrupted: true }
+      };
+    }
 
     return {
       isValid: true,
       details: {
         size: file.size,
         pages: pdf.numPages,
-        version: pdf.version
+        version,
+        isEncrypted: false,
+        isCorrupted: false
       }
     };
   } catch (error) {
     if (error instanceof Error) {
-      // Handle specific PDF.js errors
+      if (error.message === 'PASSWORD_PROTECTED') {
+        return {
+          isValid: false,
+          error: 'Password-protected PDFs are not supported. Please remove the password protection and try again.',
+          details: { size: file.size, isEncrypted: true }
+        };
+      }
+      
       if (error.message.includes('Invalid PDF structure')) {
         return {
           isValid: false,
-          error: 'The PDF file appears to be corrupted or invalid.',
-          details: { size: file.size }
-        };
-      }
-      if (error.message.includes('Password')) {
-        return {
-          isValid: false,
-          error: 'Password-protected PDFs are not supported.',
-          details: { size: file.size }
+          error: 'The PDF file appears to be corrupted. Please try repairing or re-saving the file.',
+          details: { size: file.size, isCorrupted: true }
         };
       }
     }
 
     return {
       isValid: false,
-      error: 'Failed to process PDF file. Please ensure it is a valid PDF.',
+      error: 'Failed to process PDF file. Please ensure it is a valid PDF document.',
       details: { size: file.size }
     };
   }
+}
+
+export function getReadableFileSize(bytes: number): string {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let size = bytes;
+  let unitIndex = 0;
+  
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  
+  return `${size.toFixed(2)} ${units[unitIndex]}`;
 }
