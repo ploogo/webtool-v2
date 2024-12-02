@@ -7,6 +7,7 @@ export default defineConfig({
     include: ['pdfjs-dist', 'pdfjs-dist/build/pdf.worker.mjs']
   },
   build: {
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -15,4 +16,7 @@ export default defineConfig({
       },
     },
   },
+  esbuild: {
+    target: 'esnext'
+  }
 });
