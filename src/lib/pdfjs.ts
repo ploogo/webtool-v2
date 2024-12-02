@@ -1,6 +1,11 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Set worker path to the bundled worker file
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Properly type and configure the worker
+const workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.mjs',
+  import.meta.url
+).toString();
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 export { pdfjsLib };
