@@ -94,7 +94,84 @@ export default function ThumbnailGenerator() {
     }
   }, []);
 
-  // Rest of the component implementation remains the same...
+  const handlePageToggle = useCallback((pageNumber: number) => {
+    setSelectedPages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(pageNumber)) {
+        newSet.delete(pageNumber);
+      } else {
+        newSet.add(pageNumber);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const generateThumbnails = async () => {
+    if (!processedFile || selectedPages.size === 0) return;
+
+    try {
+      setLoading(true);
+      const newThumbnails: Thumbnail[] = [];
+
+      for (const pageNumber of selectedPages) {
+        const dataUrl = await processedFile.getPage(pageNumber);
+        newThumbnails.push({ pageNumber, dataUrl });
+      }
+
+      setThumbnails(newThumbnails);
+    } catch (err) {
+      console.error('Error generating thumbnails:', err);
+      setValidationResult({
+        isValid: false,
+        error: 'Failed to generate thumbnails. Please try again.',
+        details: { size: file?.size || 0 }
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = useCallback(async (dataUrl: string, pageNumber: number, format: string, size: number, filename: string) => {
+    try {
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      const aspectRatio = img.height / img.width;
+      canvas.width = size;
+      canvas.height = size * aspectRatio;
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const mimeType = `image/${format}`;
+      const quality = format === 'jpeg' ? 0.9 : undefined;
+      const convertedImage = canvas.toDataURL(mimeType, quality);
+
+      const link = document.createElement('a');
+      link.href = convertedImage;
+      link.download = `${filename}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error downloading image:', err);
+      setValidationResult({
+        isValid: false,
+        error: 'Failed to download image. Please try again.',
+        details: { size: file?.size || 0 }
+      });
+    }
+  }, [file]);
 
   return (
     <div className="relative pb-24">
