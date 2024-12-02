@@ -11,7 +11,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['pdfjs-dist'],
-    exclude: ['pdfjs-dist/build/pdf.worker.mjs']
   },
   build: {
     target: 'esnext',
@@ -19,7 +18,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           pdfjs: ['pdfjs-dist'],
-          'pdf.worker': ['pdfjs-dist/build/pdf.worker.mjs']
         },
       },
     },

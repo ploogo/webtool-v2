@@ -57,6 +57,19 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
       };
     }
 
+    // Extract PDF version from header
+    const headerStr = new TextDecoder().decode(arrayBuffer.slice(0, 10));
+    const versionMatch = headerStr.match(/%PDF-(\d+\.\d+)/);
+    const pdfVersion = versionMatch ? versionMatch[1] : null;
+
+    if (!pdfVersion || !SUPPORTED_PDF_VERSIONS.includes(pdfVersion)) {
+      return {
+        isValid: false,
+        error: `Unsupported PDF version ${pdfVersion || 'unknown'}. Please use PDF version 1.0-2.0.`,
+        details: { size: file.size, version: pdfVersion || 'unknown' }
+      };
+    }
+
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
     
     // Handle password-protected PDFs
@@ -65,16 +78,6 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
     };
 
     const pdf = await loadingTask.promise;
-    const version = pdf.version;
-
-    // Validate PDF version
-    if (!SUPPORTED_PDF_VERSIONS.includes(version)) {
-      return {
-        isValid: false,
-        error: `Unsupported PDF version ${version}. Please use PDF version 1.0-2.0.`,
-        details: { size: file.size, version }
-      };
-    }
 
     // Check if document can be opened and pages can be accessed
     try {
@@ -84,7 +87,7 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
       return {
         isValid: false,
         error: 'PDF content appears to be corrupted or inaccessible.',
-        details: { size: file.size, version, isCorrupted: true }
+        details: { size: file.size, version: pdfVersion, isCorrupted: true }
       };
     }
 
@@ -93,7 +96,7 @@ export async function validatePDF(file: File): Promise<PDFValidationResult> {
       details: {
         size: file.size,
         pages: pdf.numPages,
-        version,
+        version: pdfVersion,
         isEncrypted: false,
         isCorrupted: false
       }
