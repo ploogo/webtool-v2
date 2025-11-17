@@ -68,8 +68,7 @@ export default function ImageEditor() {
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
     setOriginalDimensions({ width, height });
-    
-    const aspect = maintainAspectRatio ? customSize.width / customSize.height : undefined;
+
     const crop = {
       unit: 'px',
       width: Math.min(width, height * (customSize.width / customSize.height)),
@@ -82,7 +81,7 @@ export default function ImageEditor() {
     crop.y = (height - crop.height) / 2;
     
     setCrop(crop);
-  }, [customSize.width, customSize.height, maintainAspectRatio]);
+  }, [customSize.width, customSize.height]);
 
   const handleAspectRatioSelect = useCallback((ratio: number) => {
     setSelectedAspectRatio(ratio);

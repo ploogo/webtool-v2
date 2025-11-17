@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: false,
   error: null,
 
-  signIn: async (email: string, password: string) => {
+  signIn: async () => {
     try {
       set({ loading: true, error: null });
       // Mock successful login
@@ -91,7 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signUp: async (email: string, password: string, username: string) => {
+  signUp: async () => {
     try {
       set({ loading: true, error: null });
       // Mock successful registration

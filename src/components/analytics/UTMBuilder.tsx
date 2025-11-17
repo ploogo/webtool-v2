@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Copy, QrCode, Download } from 'lucide-react';
+import { Copy, QrCode, Download } from 'lucide-react';
 
 interface UTMParams {
   url: string;

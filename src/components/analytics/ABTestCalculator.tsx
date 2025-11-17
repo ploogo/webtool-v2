@@ -39,8 +39,6 @@ export default function ABTestCalculator() {
   };
 
   const calculateResults = () => {
-    // Z-score for 95% confidence level
-    const Z = 1.96;
     const control = variants[0];
     let winner = null;
     let maxImprovement = 0;

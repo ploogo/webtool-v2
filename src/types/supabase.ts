@@ -102,7 +102,7 @@ export interface Database {
           created_at: string | null;
           updated_at: string | null;
           last_accessed_at: string | null;
-          metadata: Record<string, any> | null;
+          metadata: Record<string, unknown> | null;
         };
         Insert: {
           id?: string;
@@ -112,7 +112,7 @@ export interface Database {
           created_at?: string | null;
           updated_at?: string | null;
           last_accessed_at?: string | null;
-          metadata?: Record<string, any> | null;
+          metadata?: Record<string, unknown> | null;
         };
         Update: {
           id?: string;
@@ -122,7 +122,7 @@ export interface Database {
           created_at?: string | null;
           updated_at?: string | null;
           last_accessed_at?: string | null;
-          metadata?: Record<string, any> | null;
+          metadata?: Record<string, unknown> | null;
         };
       };
     };

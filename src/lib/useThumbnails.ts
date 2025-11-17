@@ -28,7 +28,7 @@ export function useThumbnails(): UseThumbnailsReturn {
       const arrayBuffer = await file.arrayBuffer();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       
-      loadingTask.onPassword = (updatePassword, reason) => {
+      loadingTask.onPassword = () => {
         throw new Error('Password-protected PDFs are not supported.');
       };
 

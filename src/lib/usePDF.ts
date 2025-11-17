@@ -35,7 +35,7 @@ export function usePDF(): UsePDFReturn {
       const arrayBuffer = await selectedFile.arrayBuffer();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       
-      loadingTask.onPassword = (updatePassword, reason) => {
+      loadingTask.onPassword = (updatePassword) => {
         setError('Password-protected PDFs are not supported.');
         updatePassword('');
       };

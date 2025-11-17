@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuthStore, TIER_LIMITS } from '../../lib/store';
+import { useAuthStore } from '../../lib/store';
 import { supabase } from '../../lib/supabase';
 import { Camera, Loader2, Moon, Sun, Key } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,7 +37,7 @@ export default function ProfilePage() {
       }
 
       // Upload new avatar
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { 
           upsert: true,

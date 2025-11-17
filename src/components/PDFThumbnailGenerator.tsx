@@ -52,30 +52,6 @@ export default function PDFThumbnailGenerator() {
     }
   }, []);
 
-  const resizeImage = useCallback((dataUrl: string, targetWidth: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        const aspectRatio = img.height / img.width;
-        canvas.width = targetWidth;
-        canvas.height = targetWidth * aspectRatio;
-
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = dataUrl;
-    });
-  }, []);
-
   const convertFormat = useCallback(async (dataUrl: string, format: string, size: number): Promise<string> => {
     const img = new Image();
     await new Promise((resolve, reject) => {

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, Image as ImageIcon, FileDown, Loader2, RefreshCw, Info } from 'lucide-react';
+import { Download, FileDown, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import FileUploader from './FileUploader';
 

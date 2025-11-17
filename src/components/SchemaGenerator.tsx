@@ -24,13 +24,13 @@ export default function SchemaGenerator() {
           if (key.includes('.')) {
             const [parent, child] = key.split('.');
             if (!acc[parent]) acc[parent] = {};
-            (acc[parent] as any)[child] = value;
+            (acc[parent] as Record<string, string>)[child] = value;
           } else {
             acc[key] = value;
           }
         }
         return acc;
-      }, {} as any),
+      }, {} as Record<string, string | Record<string, string>>),
     };
 
     return JSON.stringify(schema, null, 2);
