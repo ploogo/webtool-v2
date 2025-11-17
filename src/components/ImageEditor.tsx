@@ -19,10 +19,10 @@ const ASPECT_RATIOS = [
 ];
 
 const OUTPUT_FORMATS = [
-  { value: 'jpeg', label: 'JPEG', description: 'Best for photographs and complex images' },
-  { value: 'png', label: 'PNG', description: 'Best for graphics with transparency' },
-  { value: 'webp', label: 'WebP', description: 'Modern format with excellent compression' },
-  { value: 'avif', label: 'AVIF', description: 'Next-gen format with superior compression' },
+  { value: 'jpeg', label: 'JPEG', description: 'Best for photographs and complex images', mimeType: 'image/jpeg', ext: 'jpg', quality: 0.95 },
+  { value: 'png', label: 'PNG', description: 'Best for graphics with transparency', mimeType: 'image/png', ext: 'png', quality: 1 },
+  { value: 'webp', label: 'WebP', description: 'Modern format with excellent compression', mimeType: 'image/webp', ext: 'webp', quality: 0.95 },
+  { value: 'avif', label: 'AVIF', description: 'Next-gen format with superior compression', mimeType: 'image/avif', ext: 'avif', quality: 0.95 },
 ];
 
 const PRESET_SIZES = [
@@ -180,7 +180,7 @@ export default function ImageEditor() {
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob(
           (blob) => resolve(blob!),
-          selectedFormat.value,
+          selectedFormat.mimeType,
           selectedFormat.quality
         );
       });
