@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { LineChart, Calendar, Search, Bell, Menu, ChevronDown, Settings } from 'lucide-react';
+import React from 'react';
+import { Search, Bell, Menu, ChevronDown, Settings } from 'lucide-react';
 
 interface ColorPreviewProps {
   colors: {
@@ -16,17 +16,8 @@ interface ColorPreviewProps {
 }
 
 export default function ColorPreview({ colors }: ColorPreviewProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const url = URL.createObjectURL(selectedFile);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [selectedFile]);
-
   return (
-    <div className="mt-12 rounded-lg overflow-hidden shadow-xl border border-gray-200">
+    <div className="mt-12 rounded-lg overflow-hidden shadow-xl border border-jet-700">
       {/* Header/Navigation */}
       <div style={{ backgroundColor: colors.primary }} className="p-4">
         <div className="flex items-center justify-between text-white">
@@ -52,12 +43,12 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
 
       {/* Search Bar */}
       <div style={{ backgroundColor: colors.primary }} className="px-4 pb-4 pt-2">
-        <div className="bg-white rounded-lg p-3 flex items-center space-x-4 shadow-lg">
-          <Search className="w-5 h-5 text-gray-400" />
+        <div className="bg-jet-800 rounded-lg p-3 flex items-center space-x-4 shadow-lg">
+          <Search className="w-5 h-5 text-jet-400" />
           <input
             type="text"
             placeholder="Search reports..."
-            className="flex-1 outline-none"
+            className="flex-1 outline-none bg-transparent text-white placeholder-jet-400"
           />
           <button
             style={{ backgroundColor: colors.secondary }}
@@ -69,9 +60,9 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50">
+      <div className="grid grid-cols-12 gap-4 p-4 bg-jet-950">
         {/* Calendar Card */}
-        <div className="col-span-12 md:col-span-4 bg-white p-4 rounded-lg shadow">
+        <div className="col-span-12 md:col-span-4 bg-jet-900/50 p-4 rounded-lg shadow border border-jet-800/50">
           <h3 className="font-medium mb-4" style={{ color: colors.neutral }}>
             Calendar
           </h3>
@@ -80,7 +71,7 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
               <div
                 key={i}
                 className={`aspect-square rounded-md flex items-center justify-center text-sm
-                  ${i === 15 ? 'text-white' : 'hover:bg-gray-50'}`}
+                  ${i === 15 ? 'text-white' : 'text-jet-300 hover:bg-jet-800'}`}
                 style={i === 15 ? { backgroundColor: colors.primary } : {}}
               >
                 {i + 1}
@@ -90,7 +81,7 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
         </div>
 
         {/* Chart Card */}
-        <div className="col-span-12 md:col-span-8 bg-white p-4 rounded-lg shadow">
+        <div className="col-span-12 md:col-span-8 bg-jet-900/50 p-4 rounded-lg shadow border border-jet-800/50">
           <h3 className="font-medium mb-4" style={{ color: colors.neutral }}>
             Performance Overview
           </h3>
@@ -110,7 +101,7 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
         </div>
 
         {/* Table Card */}
-        <div className="col-span-12 bg-white rounded-lg shadow">
+        <div className="col-span-12 bg-jet-900/50 rounded-lg shadow border border-jet-800/50">
           <div className="p-4 border-b">
             <h3 className="font-medium" style={{ color: colors.neutral }}>
               Recent Activity
@@ -118,15 +109,15 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
           </div>
           <div className="divide-y">
             {Array.from({ length: 5 }, (_, i) => (
-              <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              <div key={i} className="p-4 flex items-center justify-between hover:bg-jet-800/50">
                 <div className="flex items-center space-x-4">
                   <div
                     className="w-8 h-8 rounded-full"
                     style={{ backgroundColor: colors.secondary + '20' }}
                   ></div>
                   <div>
-                    <p className="font-medium">Activity {i + 1}</p>
-                    <p className="text-sm text-gray-500">Description text here</p>
+                    <p className="font-medium text-white">Activity {i + 1}</p>
+                    <p className="text-sm text-jet-400">Description text here</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
