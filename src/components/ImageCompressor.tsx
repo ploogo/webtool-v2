@@ -268,12 +268,12 @@ export default function ImageCompressor() {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                       Compressing...
                     </>
                   ) : (
                     <>
-                      <FileDown className="w-4 h-4" />
+                      <FileDown className="w-4 h-4" aria-hidden="true" />
                       Compress Image
                     </>
                   )}
@@ -302,7 +302,7 @@ export default function ImageCompressor() {
               <div className="p-4">
                 <img
                   src={URL.createObjectURL(selectedFile)}
-                  alt="Original"
+                  alt={`Original image: ${selectedFile.name}`}
                   className="w-full rounded-lg"
                 />
               </div>
@@ -328,7 +328,7 @@ export default function ImageCompressor() {
                     onClick={downloadCompressedImage}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-4 h-4" aria-hidden="true" />
                     Download
                   </button>
                 </div>
@@ -336,7 +336,7 @@ export default function ImageCompressor() {
               <div className="p-4">
                 <img
                   src={compressedImage.preview}
-                  alt="Compressed"
+                  alt={`Compressed image: ${selectedFile?.name || 'output'}`}
                   className="w-full rounded-lg"
                 />
               </div>

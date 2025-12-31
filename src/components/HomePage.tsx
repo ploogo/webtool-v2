@@ -81,11 +81,11 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button onClick={onGetStarted} className="btn-primary text-base">
                 Get Started
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5" aria-hidden="true" />
               </button>
               <button onClick={onGetStarted} className="btn-secondary text-base">
                 View All Tools
-                <LayoutGrid className="w-5 h-5" />
+                <LayoutGrid className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
                   }`}
                 >
                   {tier.cta}
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -231,7 +231,7 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
             </p>
             <button onClick={onGetStarted} className="btn bg-white text-neon-600 hover:bg-gray-100 text-base">
               Get Started Now
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>

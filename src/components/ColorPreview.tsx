@@ -22,20 +22,20 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
       <div style={{ backgroundColor: colors.primary }} className="p-4">
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-8">
-            <Menu className="w-6 h-6" />
-            <nav className="hidden md:flex items-center space-x-6">
-              <a href="#" className="opacity-70 hover:opacity-100">Dashboard</a>
-              <a href="#" className="opacity-100">Analytics</a>
-              <a href="#" className="opacity-70 hover:opacity-100">Reports</a>
-              <a href="#" className="opacity-70 hover:opacity-100">Settings</a>
+            <Menu className="w-6 h-6" aria-hidden="true" />
+            <nav className="hidden md:flex items-center space-x-6" aria-label="Demo navigation">
+              <span className="opacity-70 hover:opacity-100 cursor-pointer">Dashboard</span>
+              <span className="opacity-100" aria-current="page">Analytics</span>
+              <span className="opacity-70 hover:opacity-100 cursor-pointer">Reports</span>
+              <span className="opacity-70 hover:opacity-100 cursor-pointer">Settings</span>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
-            <Bell className="w-5 h-5" />
-            <Settings className="w-5 h-5" />
+            <Bell className="w-5 h-5" aria-hidden="true" />
+            <Settings className="w-5 h-5" aria-hidden="true" />
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-white/20"></div>
-              <ChevronDown className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full bg-white/20" aria-hidden="true"></div>
+              <ChevronDown className="w-4 h-4" aria-hidden="true" />
             </div>
           </div>
         </div>
@@ -44,10 +44,11 @@ export default function ColorPreview({ colors }: ColorPreviewProps) {
       {/* Search Bar */}
       <div style={{ backgroundColor: colors.primary }} className="px-4 pb-4 pt-2">
         <div className="bg-jet-800 rounded-lg p-3 flex items-center space-x-4 shadow-lg">
-          <Search className="w-5 h-5 text-jet-400" />
+          <Search className="w-5 h-5 text-jet-400" aria-hidden="true" />
           <input
             type="text"
             placeholder="Search reports..."
+            aria-label="Search reports"
             className="flex-1 outline-none bg-transparent text-white placeholder-jet-400"
           />
           <button

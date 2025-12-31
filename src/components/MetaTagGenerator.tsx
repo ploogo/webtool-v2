@@ -62,11 +62,12 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
       <div className="card space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label htmlFor="page-title" className="block text-sm font-medium text-gray-300">
               Page Title
             </label>
             <div className="relative">
               <input
+                id="page-title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -84,11 +85,12 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label htmlFor="meta-description" className="block text-sm font-medium text-gray-300">
               Meta Description
             </label>
             <div className="relative">
               <textarea
+                id="meta-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter your meta description"
@@ -106,10 +108,11 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label htmlFor="keywords" className="block text-sm font-medium text-gray-300">
               Keywords (optional)
             </label>
             <input
+              id="keywords"
               type="text"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
@@ -119,10 +122,11 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label htmlFor="page-url" className="block text-sm font-medium text-gray-300">
               Page URL
             </label>
             <input
+              id="page-url"
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -141,16 +145,18 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
             <button
               onClick={() => setPreviewDevice('mobile')}
               className={buttonClasses(previewDevice === 'mobile')}
-              title="Mobile preview"
+              aria-label="Mobile preview"
+              aria-pressed={previewDevice === 'mobile'}
             >
-              <Smartphone className="w-5 h-5" />
+              <Smartphone className="w-5 h-5" aria-hidden="true" />
             </button>
             <button
               onClick={() => setPreviewDevice('desktop')}
               className={buttonClasses(previewDevice === 'desktop')}
-              title="Desktop preview"
+              aria-label="Desktop preview"
+              aria-pressed={previewDevice === 'desktop'}
             >
-              <Monitor className="w-5 h-5" />
+              <Monitor className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -182,12 +188,12 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
           <button
             onClick={() => copyToClipboard(generateMetaTags(), 'meta')}
             className="btn-icon-secondary"
-            title="Copy meta tags"
+            aria-label="Copy meta tags to clipboard"
           >
             {copiedField === 'meta' ? (
               <span className="text-xs">Copied!</span>
             ) : (
-              <Copy className="w-5 h-5" />
+              <Copy className="w-5 h-5" aria-hidden="true" />
             )}
           </button>
         </div>

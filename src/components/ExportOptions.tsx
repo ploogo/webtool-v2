@@ -59,9 +59,10 @@ export default function ExportOptions({ title, baseColor, shades }: ExportOption
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 text-sm"
-        title="Export colors"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
-        <Download className="w-4 h-4" />
+        <Download className="w-4 h-4" aria-hidden="true" />
         Export
       </button>
 
@@ -71,7 +72,7 @@ export default function ExportOptions({ title, baseColor, shades }: ExportOption
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           ></div>
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-20 py-2">
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-20 py-2" role="menu">
             {formats.map((format) => (
               <button
                 key={format.extension}
@@ -80,6 +81,7 @@ export default function ExportOptions({ title, baseColor, shades }: ExportOption
                   setIsOpen(false);
                 }}
                 className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                role="menuitem"
               >
                 Export as {format.name}
               </button>

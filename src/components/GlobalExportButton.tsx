@@ -70,8 +70,10 @@ export default function GlobalExportButton({ palettes, supporting }: GlobalExpor
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
-        <Download className="w-4 h-4" />
+        <Download className="w-4 h-4" aria-hidden="true" />
         Export All Palettes
       </button>
 
@@ -81,7 +83,7 @@ export default function GlobalExportButton({ palettes, supporting }: GlobalExpor
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           ></div>
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-20 py-2">
+          <div className="absolute right-0 mt-2 w-48 bg-jet-800 rounded-lg shadow-lg z-20 py-2 border border-jet-700" role="menu">
             {formats.map((format) => (
               <button
                 key={format.extension}
@@ -89,7 +91,8 @@ export default function GlobalExportButton({ palettes, supporting }: GlobalExpor
                   downloadFile(format.generate(), format.extension);
                   setIsOpen(false);
                 }}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                className="w-full px-4 py-2 text-left text-sm text-jet-300 hover:bg-jet-700 hover:text-white transition-colors"
+                role="menuitem"
               >
                 Export as {format.name}
               </button>

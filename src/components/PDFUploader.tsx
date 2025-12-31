@@ -30,14 +30,14 @@ export default function PDFUploader({ onFileSelect, currentFileName }: PDFUpload
               <button
                 onClick={handleClear}
                 className="p-1 hover:bg-jet-700 rounded-full"
-                title="Clear selection"
+                aria-label="Clear file selection"
               >
-                <X className="w-4 h-4 text-gray-400" />
+                <X className="w-4 h-4 text-gray-400" aria-hidden="true" />
               </button>
             </div>
           ) : (
             <>
-              <Upload className="w-8 h-8 mb-2 text-gray-400" />
+              <Upload className="w-8 h-8 mb-2 text-gray-400" aria-hidden="true" />
               <p className="mb-2 text-sm text-gray-300">
                 <span className="font-semibold">Click to upload</span> or drag and drop
               </p>

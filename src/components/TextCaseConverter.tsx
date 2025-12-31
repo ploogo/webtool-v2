@@ -122,7 +122,7 @@ export default function TextCaseConverter() {
             onClick={clearInput}
             className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Clear
           </button>
         </div>
@@ -147,9 +147,9 @@ export default function TextCaseConverter() {
               <button
                 onClick={() => copyToClipboard(convertCase(input, caseType.value), index)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
-                title="Copy to clipboard"
+                aria-label={`Copy ${caseType.label} to clipboard`}
               >
-                <Copy className="w-4 h-4 text-gray-500" />
+                <Copy className="w-4 h-4 text-gray-500" aria-hidden="true" />
                 {copiedIndex === index && (
                   <span className="absolute right-0 top-full mt-1 text-xs bg-black/75 text-white px-2 py-1 rounded">
                     Copied!

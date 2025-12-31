@@ -180,14 +180,14 @@ export default function ColorShadeGenerator() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Color Palette Generator</h1>
+        <h1 className="text-3xl font-bold text-white">Color Palette Generator</h1>
         <GlobalExportButton palettes={exportData.palettes} supporting={exportData.supporting} />
       </div>
 
       {/* Color Palettes */}
       <div className="space-y-6">
         {mainPalettes.map((palette) => (
-          <div key={palette.id} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div key={palette.id} className="bg-jet-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-jet-800/50">
             <ColorPaletteSection
               title={palette.name}
               description={palette.description}
@@ -204,11 +204,11 @@ export default function ColorShadeGenerator() {
 
         <button
           onClick={addPalette}
-          className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl
-            text-gray-600 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 
+          className="w-full py-4 border-2 border-dashed border-jet-700 rounded-xl
+            text-jet-300 hover:text-white hover:border-jet-600 hover:bg-jet-800/50
             transition-all flex items-center justify-center gap-2"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5" aria-hidden="true" />
           Add Custom Palette
         </button>
       </div>
@@ -216,8 +216,8 @@ export default function ColorShadeGenerator() {
       {/* Supporting Colors */}
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Supporting Colors</h2>
-          <p className="mt-2 text-gray-600">
+          <h2 className="text-2xl font-bold text-white">Supporting Colors</h2>
+          <p className="mt-2 text-jet-300">
             Use these colors sparingly to communicate specific meanings or states in your interface.
           </p>
         </div>
@@ -226,7 +226,7 @@ export default function ColorShadeGenerator() {
           {(Object.keys(supportingColors) as Array<keyof Omit<SupportingColors, 'shades'>>).map(key => {
             if (key === 'shades') return null;
             return (
-              <div key={key} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              <div key={key} className="bg-jet-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-jet-800/50">
                 <ColorPaletteSection
                   title={key.charAt(0).toUpperCase() + key.slice(1)}
                   description={getDescription(key)}
@@ -244,8 +244,8 @@ export default function ColorShadeGenerator() {
       </div>
 
       {/* Live Preview */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Live Preview</h2>
+      <div className="bg-jet-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-jet-800/50">
+        <h2 className="text-lg font-semibold text-white mb-6">Live Preview</h2>
         <ColorPreview colors={previewColors} />
       </div>
     </div>
