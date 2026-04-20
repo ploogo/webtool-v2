@@ -38,9 +38,20 @@ export default function ABTestCalculator() {
     setVariants(newVariants);
   };
 
+  // Abramowitz & Stegun 7.1.26 approximation of the error function.
+  const erf = (x: number): number => {
+    const sign = Math.sign(x);
+    const ax = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * ax);
+    const y =
+      1 -
+      (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) *
+        t *
+        Math.exp(-ax * ax);
+    return sign * y;
+  };
+
   const calculateResults = () => {
-    // Z-score for 95% confidence level
-    const Z = 1.96;
     const control = variants[0];
     let winner = null;
     let maxImprovement = 0;
@@ -60,7 +71,7 @@ export default function ABTestCalculator() {
 
       // Z-score calculation
       const z = Math.abs(variantRate - controlRate) / se;
-      const confidence = (0.5 * (1 + Math.erf(z / Math.sqrt(2)))) * 100;
+      const confidence = (0.5 * (1 + erf(z / Math.sqrt(2)))) * 100;
 
       if (confidence > 95 && improvement > maxImprovement) {
         winner = variant.name;
