@@ -56,45 +56,60 @@ export default function SchemaGenerator() {
 
   const renderField = (field: SchemaField) => {
     const value = formData[field.id] || '';
-    
+    const tooltipId = `schema-tooltip-${field.id}`;
+    const tooltipVisible = showTooltip === field.id;
+
     return (
       <div key={field.id} className="space-y-2">
         <div className="flex items-center gap-2">
-          <label className="block text-sm font-medium text-gray-300">
+          <label htmlFor={field.id} className="block text-sm font-medium text-gray-300">
             {field.label}
-            {field.required && <span className="text-brand-coral ml-1">*</span>}
+            {field.required && <span className="text-red-400 ml-1" aria-label="required">*</span>}
           </label>
           <button
+            type="button"
             className="btn-icon-ghost"
+            aria-label={`Help for ${field.label}`}
+            aria-describedby={tooltipVisible ? tooltipId : undefined}
             onMouseEnter={() => setShowTooltip(field.id)}
             onMouseLeave={() => setShowTooltip(null)}
+            onFocus={() => setShowTooltip(field.id)}
+            onBlur={() => setShowTooltip(null)}
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
-        
-        {showTooltip === field.id && (
-          <div className="absolute z-50 mt-1 p-2 bg-navy-700 text-sm text-gray-300 rounded-lg shadow-lg max-w-xs">
+
+        {tooltipVisible && (
+          <div
+            id={tooltipId}
+            role="tooltip"
+            className="absolute z-50 mt-1 p-2 bg-jet-700 text-sm text-gray-100 rounded-lg shadow-lg max-w-xs"
+          >
             {field.description}
           </div>
         )}
 
         {field.type === 'textarea' ? (
           <textarea
+            id={field.id}
             value={value}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             className="input h-24"
             placeholder={field.placeholder}
             required={field.required}
+            aria-required={field.required}
           />
         ) : (
           <input
+            id={field.id}
             type={field.type}
             value={value}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             className="input"
             placeholder={field.placeholder}
             required={field.required}
+            aria-required={field.required}
           />
         )}
       </div>
@@ -158,29 +173,39 @@ export default function SchemaGenerator() {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-white">Select Schema Type</h3>
           {selectedType && (
-            <button onClick={resetForm} className="btn-icon-ghost">
-              <RefreshCw className="w-5 h-5" />
+            <button
+              type="button"
+              onClick={resetForm}
+              className="btn-icon-ghost"
+              aria-label="Reset form and clear selection"
+            >
+              <RefreshCw className="w-5 h-5" aria-hidden="true" />
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {schemaTypes.map((type) => (
-            <button
-              key={type.type}
-              onClick={() => setSelectedType(type)}
-              className={`p-4 rounded-lg border transition-colors ${
-                selectedType?.type === type.type
-                  ? 'border-brand-coral bg-navy-700 text-white'
-                  : 'border-navy-600 hover:border-brand-coral text-gray-300'
-              }`}
-            >
-              <div className="text-center space-y-2">
-                <type.icon className="w-6 h-6 mx-auto" />
-                <div className="text-sm font-medium">{type.type}</div>
-              </div>
-            </button>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" role="group" aria-label="Schema types">
+          {schemaTypes.map((type) => {
+            const isSelected = selectedType?.type === type.type;
+            return (
+              <button
+                key={type.type}
+                type="button"
+                onClick={() => setSelectedType(type)}
+                aria-pressed={isSelected}
+                className={`p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950 ${
+                  isSelected
+                    ? 'border-neon-500 bg-jet-700 text-white'
+                    : 'border-jet-700 hover:border-neon-500 text-gray-300'
+                }`}
+              >
+                <div className="text-center space-y-2">
+                  <type.icon className="w-6 h-6 mx-auto" aria-hidden="true" />
+                  <div className="text-sm font-medium">{type.type}</div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -208,24 +233,26 @@ export default function SchemaGenerator() {
           </div>
 
           {/* Generated Code */}
-          <div className="card space-y-4">
+          <div className="card space-y-4" role="region" aria-live="polite" aria-label="Generated schema">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Code className="w-5 h-5 text-brand-coral" />
+                <Code className="w-5 h-5 text-neon-500" aria-hidden="true" />
                 <h3 className="text-lg font-medium text-white">Generated Schema</h3>
               </div>
               <button
+                type="button"
                 onClick={() => copyToClipboard(generateSchema(), 'schema')}
                 className="btn-icon-secondary"
+                aria-label="Copy generated schema to clipboard"
               >
                 {copiedField === 'schema' ? (
                   <span className="text-xs">Copied!</span>
                 ) : (
-                  <Copy className="w-5 h-5" />
+                  <Copy className="w-5 h-5" aria-hidden="true" />
                 )}
               </button>
             </div>
-            <pre className="bg-navy-900 p-4 rounded-lg overflow-x-auto">
+            <pre className="bg-jet-900 p-4 rounded-lg overflow-x-auto">
               <code className="text-sm text-gray-300">{generateSchema()}</code>
             </pre>
           </div>

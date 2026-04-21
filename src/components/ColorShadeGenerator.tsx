@@ -180,8 +180,12 @@ export default function ColorShadeGenerator() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">Color Palette Generator</h1>
+        <h2 className="text-2xl font-bold text-white">Color Palette Generator</h2>
         <GlobalExportButton palettes={exportData.palettes} supporting={exportData.supporting} />
+      </div>
+
+      <div className="sr-only" role="status" aria-live="polite">
+        {copiedIndex !== null ? 'Color value copied to clipboard' : ''}
       </div>
 
       {/* Color Palettes */}
@@ -203,10 +207,13 @@ export default function ColorShadeGenerator() {
         ))}
 
         <button
+          type="button"
           onClick={addPalette}
+          aria-label="Add custom color palette"
           className="w-full py-4 border-2 border-dashed border-jet-700 rounded-xl
             text-jet-300 hover:text-white hover:border-jet-600 hover:bg-jet-800/50
-            transition-all flex items-center justify-center gap-2"
+            transition-all flex items-center justify-center gap-2
+            focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950"
         >
           <Plus className="w-5 h-5" aria-hidden="true" />
           Add Custom Palette
@@ -216,7 +223,7 @@ export default function ColorShadeGenerator() {
       {/* Supporting Colors */}
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Supporting Colors</h2>
+          <h3 className="text-2xl font-bold text-white">Supporting Colors</h3>
           <p className="mt-2 text-jet-300">
             Use these colors sparingly to communicate specific meanings or states in your interface.
           </p>
@@ -245,7 +252,7 @@ export default function ColorShadeGenerator() {
 
       {/* Live Preview */}
       <div className="bg-jet-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-jet-800/50">
-        <h2 className="text-lg font-semibold text-white mb-6">Live Preview</h2>
+        <h3 className="text-lg font-semibold text-white mb-6">Live Preview</h3>
         <ColorPreview colors={previewColors} />
       </div>
     </div>

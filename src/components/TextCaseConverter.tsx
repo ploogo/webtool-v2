@@ -110,8 +110,14 @@ export default function TextCaseConverter() {
     setInput('');
   };
 
+  const copiedLabel =
+    copiedIndex !== null ? CASE_TYPES[copiedIndex]?.label ?? '' : '';
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      <div className="sr-only" role="status" aria-live="polite">
+        {copiedLabel ? `${copiedLabel} copied to clipboard` : ''}
+      </div>
       {/* Input Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -119,8 +125,9 @@ export default function TextCaseConverter() {
             Enter your text
           </label>
           <button
+            type="button"
             onClick={clearInput}
-            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950 rounded"
           >
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Clear
@@ -145,8 +152,9 @@ export default function TextCaseConverter() {
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-gray-900">{caseType.label}</h3>
               <button
+                type="button"
                 onClick={() => copyToClipboard(convertCase(input, caseType.value), index)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950"
                 aria-label={`Copy ${caseType.label} to clipboard`}
               >
                 <Copy className="w-4 h-4 text-gray-500" aria-hidden="true" />

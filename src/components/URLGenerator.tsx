@@ -34,6 +34,9 @@ export default function URLGenerator() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
+      <div className="sr-only" role="status" aria-live="polite">
+        {copied !== null && urls[copied] ? `${urls[copied].type} URL copied to clipboard` : ''}
+      </div>
       <div className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -49,15 +52,16 @@ export default function URLGenerator() {
               className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
             <button
+              type="button"
               onClick={generateURLs}
               disabled={!input.trim()}
-              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2
+              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950
                 ${!input.trim()
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
               Generate
             </button>
           </div>
@@ -72,9 +76,9 @@ export default function URLGenerator() {
       {urls.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">URL Variations</h2>
-          <div className="space-y-3">
+          <ul className="space-y-3">
             {urls.map((variation, index) => (
-              <div
+              <li
                 key={`${variation.type}-${variation.url}`}
                 className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg group relative"
               >
@@ -82,20 +86,21 @@ export default function URLGenerator() {
                   {variation.url}
                 </div>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(variation.url, index)}
-                  className="p-2 hover:bg-gray-200 rounded-md transition-colors"
-                  title="Copy URL"
+                  className="p-2 hover:bg-gray-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950"
+                  aria-label={`Copy ${variation.type} URL to clipboard`}
                 >
-                  <Copy className="w-4 h-4 text-gray-500" />
+                  <Copy className="w-4 h-4 text-gray-500" aria-hidden="true" />
                 </button>
                 {copied === index && (
-                  <span className="absolute right-12 top-1/2 -translate-y-1/2 text-xs bg-black/75 text-white px-2 py-1 rounded">
+                  <span className="absolute right-12 top-1/2 -translate-y-1/2 text-xs bg-black/75 text-white px-2 py-1 rounded" aria-hidden="true">
                     Copied!
                   </span>
                 )}
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
           <div className="text-sm text-gray-500">
             <p>URL variations include:</p>
             <ul className="list-disc list-inside ml-4 space-y-1">

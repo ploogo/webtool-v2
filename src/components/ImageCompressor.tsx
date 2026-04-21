@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, Download, Image as ImageIcon, FileDown, Loader2, RefreshCw, Info } from 'lucide-react';
+import { Download, FileDown, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import FileUploader from './FileUploader';
 
@@ -138,44 +138,49 @@ export default function ImageCompressor() {
                 <h3 className="font-medium text-gray-900">Compression Settings</h3>
 
                 {/* Compression Mode */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                <fieldset className="space-y-2">
+                  <legend className="block text-sm font-medium text-gray-700">
                     Compression Mode
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2" role="group">
                     {(Object.entries(COMPRESSION_MODES) as [keyof typeof COMPRESSION_MODES, typeof COMPRESSION_MODES[keyof typeof COMPRESSION_MODES]][]).map(([mode, info]) => (
                       <button
                         key={mode}
+                        type="button"
                         onClick={() => handleCompressionModeChange(mode)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative group ${
+                        aria-pressed={compressionMode === mode}
+                        aria-label={`${info.name}: ${info.description}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative group focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 ${
                           compressionMode === mode
                             ? 'bg-blue-600 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
                         {info.name}
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-black/75 text-white text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-black/75 text-white text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity" aria-hidden="true">
                           {info.description}
-                        </div>
+                        </span>
                       </button>
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 {/* Quality Settings (only for lossy compression) */}
                 {compressionMode === 'lossy' && (
                   <>
                     {/* Quality Presets */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                    <fieldset className="space-y-2">
+                      <legend className="block text-sm font-medium text-gray-700">
                         Quality Preset
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      </legend>
+                      <div className="grid grid-cols-2 gap-2" role="group">
                         {IMAGE_QUALITY_PRESETS.map((preset) => (
                           <button
                             key={preset.name}
+                            type="button"
                             onClick={() => setSelectedPreset(preset)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            aria-pressed={selectedPreset.name === preset.name}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 ${
                               selectedPreset.name === preset.name
                                 ? 'bg-neon-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -185,39 +190,42 @@ export default function ImageCompressor() {
                           </button>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
 
                     {/* Custom Settings */}
                     {selectedPreset.name === 'Custom' && (
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="custom-quality" className="block text-sm font-medium text-gray-700">
                               Quality
                             </label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500" aria-hidden="true">
                               {customQuality}%
                             </span>
                           </div>
                           <input
+                            id="custom-quality"
                             type="range"
                             min="1"
                             max="100"
                             value={customQuality}
                             onChange={(e) => setCustomQuality(Number(e.target.value))}
                             className="w-full"
+                            aria-valuetext={`${customQuality} percent`}
                           />
-                          <div className="flex justify-between text-xs text-gray-500">
+                          <div className="flex justify-between text-xs text-gray-500" aria-hidden="true">
                             <span>Smaller file</span>
                             <span>Better quality</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="custom-max-size" className="block text-sm font-medium text-gray-700">
                             Max Width/Height (px)
                           </label>
                           <input
+                            id="custom-max-size"
                             type="number"
                             value={customMaxSize}
                             onChange={(e) => setCustomMaxSize(Number(e.target.value))}
@@ -233,10 +241,11 @@ export default function ImageCompressor() {
 
                 {/* Output Format */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="output-format" className="block text-sm font-medium text-gray-700">
                     Output Format
                   </label>
                   <select
+                    id="output-format"
                     value={selectedFormat.value}
                     onChange={(e) => setSelectedFormat(
                       OUTPUT_FORMATS.find(f => f.value === e.target.value) || OUTPUT_FORMATS[0]
@@ -258,9 +267,11 @@ export default function ImageCompressor() {
 
                 {/* Compress Button */}
                 <button
+                  type="button"
                   onClick={compressImage}
                   disabled={loading}
-                  className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2
+                  aria-busy={loading}
+                  className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2
                     ${loading
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -283,7 +294,11 @@ export default function ImageCompressor() {
           )}
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
+            >
               {error}
             </div>
           )}
@@ -310,14 +325,19 @@ export default function ImageCompressor() {
           )}
 
           {compressedImage && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              role="region"
+              aria-live="polite"
+              aria-label="Compressed image result"
+            >
               <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium text-gray-900">Compressed Image</h3>
                     <p className="text-sm text-gray-500 mt-1">
                       Size: {formatFileSize(compressedImage.compressedSize)} ({' '}
-                      <span className="text-green-600">
+                      <span className="text-green-700">
                         {calculateReduction(compressedImage.originalSize, compressedImage.compressedSize)}%
                         reduction
                       </span>
@@ -325,8 +345,9 @@ export default function ImageCompressor() {
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={downloadCompressedImage}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2"
                   >
                     <Download className="w-4 h-4" aria-hidden="true" />
                     Download

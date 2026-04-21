@@ -69,7 +69,6 @@ export default function ImageEditor() {
     const { width, height } = e.currentTarget;
     setOriginalDimensions({ width, height });
     
-    const aspect = maintainAspectRatio ? customSize.width / customSize.height : undefined;
     const crop = {
       unit: 'px',
       width: Math.min(width, height * (customSize.width / customSize.height)),
@@ -225,7 +224,7 @@ export default function ImageEditor() {
                 >
                   <img
                     ref={imgRef}
-                    alt="Upload"
+                    alt={selectedFile ? `Preview of ${selectedFile.name} for cropping` : 'Image preview for cropping'}
                     src={previewUrl}
                     className="max-w-full max-h-[600px] mx-auto"
                     onLoad={onImageLoad}
@@ -247,6 +246,7 @@ export default function ImageEditor() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-white">Aspect Ratio</h3>
                   <button
+                    type="button"
                     onClick={() => {
                       setMaintainAspectRatio(!maintainAspectRatio);
                       setSelectedAspectRatio(null);
@@ -256,30 +256,34 @@ export default function ImageEditor() {
                         ? 'btn-icon-primary'
                         : 'btn-icon-ghost'
                     }`}
-                    title={maintainAspectRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+                    aria-label={maintainAspectRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+                    aria-pressed={maintainAspectRatio}
                   >
                     {maintainAspectRatio ? (
-                      <Lock className="w-4 h-4" />
+                      <Lock className="w-4 h-4" aria-hidden="true" />
                     ) : (
-                      <Unlock className="w-4 h-4" />
+                      <Unlock className="w-4 h-4" aria-hidden="true" />
                     )}
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="Aspect ratio presets">
                   {ASPECT_RATIOS.map((ratio) => (
                     <button
                       key={ratio.value}
+                      type="button"
                       onClick={() => handleAspectRatioSelect(ratio.value)}
-                      className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-pressed={selectedAspectRatio === ratio.value}
+                      aria-label={`${ratio.label}: ${ratio.description}`}
+                      className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950 ${
                         selectedAspectRatio === ratio.value
                           ? 'bg-neon-500 text-jet-900'
                           : 'bg-jet-800 text-jet-300 hover:bg-jet-700'
                       }`}
                     >
                       {ratio.label}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+                      <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10" aria-hidden="true">
                         {ratio.description}
-                      </div>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -288,21 +292,24 @@ export default function ImageEditor() {
               {/* Export Format */}
               <div className="card space-y-4">
                 <h3 className="font-medium text-white">Export Format</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="Export format">
                   {OUTPUT_FORMATS.map((format) => (
                     <button
                       key={format.value}
+                      type="button"
                       onClick={() => setSelectedFormat(format)}
-                      className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-pressed={selectedFormat.value === format.value}
+                      aria-label={`${format.label}: ${format.description}`}
+                      className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950 ${
                         selectedFormat.value === format.value
                           ? 'bg-neon-500 text-jet-900'
                           : 'bg-jet-800 text-jet-300 hover:bg-jet-700'
                       }`}
                     >
                       {format.label}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+                      <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10" aria-hidden="true">
                         {format.description}
-                      </div>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -313,8 +320,9 @@ export default function ImageEditor() {
                 <h3 className="font-medium text-white">Output Size</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-jet-300 mb-1">Width</label>
+                    <label htmlFor="output-width" className="block text-sm font-medium text-jet-300 mb-1">Width</label>
                     <input
+                      id="output-width"
                       type="number"
                       value={customSize.width}
                       onChange={(e) => {
@@ -331,8 +339,9 @@ export default function ImageEditor() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-jet-300 mb-1">Height</label>
+                    <label htmlFor="output-height" className="block text-sm font-medium text-jet-300 mb-1">Height</label>
                     <input
+                      id="output-height"
                       type="number"
                       value={customSize.height}
                       onChange={(e) => {
@@ -354,20 +363,22 @@ export default function ImageEditor() {
               {/* Preset Sizes */}
               <div className="card space-y-4 xl:col-span-2">
                 <h3 className="font-medium text-white">Preset Sizes</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="Preset output sizes">
                   {PRESET_SIZES.map((preset) => (
                     <button
                       key={`${preset.width}x${preset.height}`}
+                      type="button"
                       onClick={() => handlePresetSelect(preset)}
-                      className="group relative px-3 py-2 text-left text-sm rounded-md hover:bg-jet-800 transition-colors"
+                      aria-label={`${preset.label}, ${preset.width} by ${preset.height} pixels: ${preset.description}`}
+                      className="group relative px-3 py-2 text-left text-sm rounded-md hover:bg-jet-800 transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950"
                     >
                       <span className="text-white">{preset.label}</span>
-                      <span className="block text-jet-400 text-xs">
+                      <span className="block text-jet-300 text-xs">
                         {preset.width}×{preset.height}
                       </span>
-                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+                      <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-48 p-2 bg-jet-900 text-jet-300 text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10" aria-hidden="true">
                         {preset.description}
-                      </div>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -376,18 +387,20 @@ export default function ImageEditor() {
               {/* Export Button */}
               <div className="card xl:col-span-1">
                 <button
+                  type="button"
                   onClick={generateDownload}
                   disabled={!completedCrop || loading}
                   className="w-full btn-primary h-full min-h-[120px] flex-col"
+                  aria-busy={loading}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin mb-2" aria-hidden="true" />
                       <span>Processing...</span>
                     </>
                   ) : (
                     <>
-                      <Download className="w-6 h-6 mb-2" />
+                      <Download className="w-6 h-6 mb-2" aria-hidden="true" />
                       <span>Export Image</span>
                     </>
                   )}

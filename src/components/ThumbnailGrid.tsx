@@ -63,37 +63,52 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-medium text-white">Generated Thumbnails</h3>
-          <div className="relative group">
-            <Info className="w-4 h-4 text-gray-400 cursor-help" />
-            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-64 p-3 bg-jet-800 text-sm text-gray-300 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+          <button
+            type="button"
+            aria-label="How to download thumbnails"
+            aria-describedby="thumbnail-grid-hint"
+            className="relative group btn-icon-ghost p-1"
+          >
+            <Info className="w-4 h-4 text-gray-400" aria-hidden="true" />
+            <span
+              id="thumbnail-grid-hint"
+              role="tooltip"
+              className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-64 p-3 bg-jet-800 text-sm text-gray-300 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10"
+            >
               Click individual thumbnails to download, or use the export options to download all at once.
-            </div>
-          </div>
+            </span>
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={handleBatchExport}
             disabled={exporting}
+            aria-busy={exporting}
             className={`btn-primary ${exporting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {exporting ? (
               <>
-                <PackageCheck className="w-4 h-4 animate-pulse" />
+                <PackageCheck className="w-4 h-4 animate-pulse" aria-hidden="true" />
                 Exporting...
               </>
             ) : (
               <>
-                <PackageCheck className="w-4 h-4" />
+                <PackageCheck className="w-4 h-4" aria-hidden="true" />
                 Export All
               </>
             )}
           </button>
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowSettings(!showSettings)}
+              aria-expanded={showSettings}
+              aria-haspopup="true"
+              aria-controls="export-settings-panel"
               className="btn-secondary"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4" aria-hidden="true" />
               <span>Export Settings</span>
             </button>
 
@@ -102,18 +117,25 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
                 <div
                   className="fixed inset-0 z-10"
                   onClick={() => setShowSettings(false)}
+                  aria-hidden="true"
                 />
-                <div className="absolute right-0 mt-2 w-64 bg-jet-800 rounded-lg shadow-lg z-20 p-4 space-y-4 border border-jet-700">
+                <div
+                  id="export-settings-panel"
+                  role="dialog"
+                  aria-label="Export settings"
+                  className="absolute right-0 mt-2 w-64 bg-jet-800 rounded-lg shadow-lg z-20 p-4 space-y-4 border border-jet-700"
+                >
                   <FileNamePattern
                     onChange={setFilePattern}
                     defaultPattern={filePattern}
                   />
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="thumbnail-format" className="block text-sm font-medium text-gray-300">
                       Format
                     </label>
                     <select
+                      id="thumbnail-format"
                       value={selectedFormat}
                       onChange={(e) => setSelectedFormat(e.target.value)}
                       className="input"
@@ -127,10 +149,11 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="thumbnail-size" className="block text-sm font-medium text-gray-300">
                       Size
                     </label>
                     <select
+                      id="thumbnail-size"
                       value={selectedSize}
                       onChange={(e) => setSelectedSize(Number(e.target.value))}
                       className="input"
@@ -149,28 +172,30 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {thumbnails.map(({ pageNumber, dataUrl }) => (
-          <div key={pageNumber} className="relative group">
+          <li key={pageNumber} className="relative group">
             <img
               src={dataUrl}
-              alt={`Page ${pageNumber}`}
+              alt={`Thumbnail of page ${pageNumber}`}
               className="w-full rounded-lg shadow-md bg-jet-800"
             />
             <button
+              type="button"
               onClick={() => onDownload(dataUrl, pageNumber, selectedFormat, selectedSize, getFilename(pageNumber))}
-              className="absolute top-2 right-2 p-2 bg-jet-900/90 backdrop-blur-sm rounded-full shadow-md 
-                opacity-0 group-hover:opacity-100 transition-opacity hover:bg-jet-800"
-              title="Download thumbnail"
+              aria-label={`Download thumbnail for page ${pageNumber} as ${selectedFormat.toUpperCase()}`}
+              className="absolute top-2 right-2 p-2 bg-jet-900/90 backdrop-blur-sm rounded-full shadow-md
+                opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-opacity hover:bg-jet-800
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-neon-500 focus-visible:ring-offset-2 focus-visible:ring-offset-jet-950"
             >
-              <Download className="w-4 h-4 text-gray-300" />
+              <Download className="w-4 h-4 text-gray-300" aria-hidden="true" />
             </button>
             <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-jet-900/90 backdrop-blur-sm text-gray-300 rounded-md text-sm">
               {getFilename(pageNumber)}.{selectedFormat}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

@@ -85,20 +85,30 @@ function SymbolsToolbar() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {SYMBOL_CATEGORIES.map((category) => (
-          <button
-            key={category.name}
-            onClick={() => setSelectedCategory(category.name)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedCategory === category.name
-                ? 'bg-brand-coral text-white'
-                : 'bg-navy-700 text-gray-300 hover:bg-navy-600 hover:text-white'
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Symbol categories">
+        {SYMBOL_CATEGORIES.map((category) => {
+          const isSelected = selectedCategory === category.name;
+          return (
+            <button
+              key={category.name}
+              type="button"
+              onClick={() => setSelectedCategory(category.name)}
+              aria-pressed={isSelected}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950 ${
+                isSelected
+                  ? 'bg-neon-500 text-jet-900'
+                  : 'bg-jet-800 text-gray-300 hover:bg-jet-700 hover:text-white'
+              }`}
+            >
+              {category.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Screen reader announcement for copy action */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {copiedSymbol ? `Copied ${copiedSymbol} to clipboard` : ''}
       </div>
 
       {/* Symbols Grid */}
@@ -107,23 +117,25 @@ function SymbolsToolbar() {
           {SYMBOL_CATEGORIES.find(c => c.name === selectedCategory)?.symbols.map(({ symbol, name }) => (
             <button
               key={symbol}
+              type="button"
               onClick={() => copyToClipboard(symbol)}
-              className="group relative flex items-center gap-3 p-3 rounded-lg bg-navy-800 hover:bg-navy-700 transition-colors"
+              aria-label={`Copy ${name} symbol ${symbol} to clipboard`}
+              className="group relative flex items-center gap-3 p-3 rounded-lg bg-jet-800 hover:bg-jet-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neon-500 focus:ring-offset-2 focus:ring-offset-jet-950"
             >
-              <span className="text-2xl font-medium text-white">{symbol}</span>
+              <span className="text-2xl font-medium text-white" aria-hidden="true">{symbol}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-300 truncate">{name}</p>
                 <p className="text-xs text-gray-400">Click to copy</p>
               </div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                 {copiedSymbol === symbol ? (
-                  <Check className="w-4 h-4 text-green-500" />
+                  <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                 ) : (
-                  <Copy className="w-4 h-4 text-gray-400" />
+                  <Copy className="w-4 h-4 text-gray-400" aria-hidden="true" />
                 )}
               </div>
               {copiedSymbol === symbol && (
-                <span className="absolute -top-2 right-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                <span className="absolute -top-2 right-2 text-xs bg-green-500 text-jet-900 px-2 py-0.5 rounded-full" aria-hidden="true">
                   Copied!
                 </span>
               )}

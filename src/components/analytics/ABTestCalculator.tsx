@@ -99,11 +99,13 @@ export default function ABTestCalculator() {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-white">Test Variants</h3>
           <button
+            type="button"
             onClick={addVariant}
             className="btn-icon-secondary"
             disabled={variants.length >= 5}
+            aria-label="Add test variant"
           >
-            <PlusCircle className="w-5 h-5" />
+            <PlusCircle className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -117,6 +119,7 @@ export default function ABTestCalculator() {
                   onChange={(e) => updateVariant(index, 'name', e.target.value)}
                   className="input"
                   placeholder="Variant name"
+                  aria-label={`Variant ${index + 1} name`}
                 />
               </div>
               <div className="col-span-3">
@@ -127,6 +130,7 @@ export default function ABTestCalculator() {
                   className="input"
                   placeholder="Visitors"
                   min="0"
+                  aria-label={`${variant.name || `Variant ${index + 1}`} visitors`}
                 />
               </div>
               <div className="col-span-3">
@@ -138,20 +142,23 @@ export default function ABTestCalculator() {
                   placeholder="Conversions"
                   min="0"
                   max={variant.visitors}
+                  aria-label={`${variant.name || `Variant ${index + 1}`} conversions`}
                 />
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-gray-300">
+                <div className="text-sm text-gray-300" aria-label={`${variant.name || `Variant ${index + 1}`} conversion rate`}>
                   {getConversionRate(variant).toFixed(2)}%
                 </div>
               </div>
               <div className="col-span-1">
                 {index > 1 && (
                   <button
+                    type="button"
                     onClick={() => removeVariant(index)}
                     className="btn-icon-ghost text-red-400 hover:text-red-300"
+                    aria-label={`Remove ${variant.name || `variant ${index + 1}`}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -171,7 +178,7 @@ export default function ABTestCalculator() {
 
       {/* Results */}
       {results && (
-        <div className="card space-y-6">
+        <div className="card space-y-6" role="region" aria-live="polite" aria-label="A/B test results">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-brand-coral" />
             <h3 className="text-lg font-medium text-white">Test Results</h3>
