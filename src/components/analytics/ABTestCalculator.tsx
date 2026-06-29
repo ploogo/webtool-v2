@@ -7,6 +7,22 @@ interface Variant {
   conversions: number;
 }
 
+// Error function (Abramowitz & Stegun 7.1.26 approximation).
+// JavaScript has no built-in Math.erf, so we approximate it here.
+function erf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x);
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const p = 0.3275911;
+  const t = 1 / (1 + p * ax);
+  const y = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-ax * ax);
+  return sign * y;
+}
+
 export default function ABTestCalculator() {
   const [variants, setVariants] = useState<Variant[]>([
     { name: 'Control', visitors: 0, conversions: 0 },
@@ -39,8 +55,6 @@ export default function ABTestCalculator() {
   };
 
   const calculateResults = () => {
-    // Z-score for 95% confidence level
-    const Z = 1.96;
     const control = variants[0];
     let winner = null;
     let maxImprovement = 0;
@@ -60,7 +74,7 @@ export default function ABTestCalculator() {
 
       // Z-score calculation
       const z = Math.abs(variantRate - controlRate) / se;
-      const confidence = (0.5 * (1 + Math.erf(z / Math.sqrt(2)))) * 100;
+      const confidence = (0.5 * (1 + erf(z / Math.sqrt(2)))) * 100;
 
       if (confidence > 95 && improvement > maxImprovement) {
         winner = variant.name;
