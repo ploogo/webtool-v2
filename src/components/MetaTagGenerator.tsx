@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Monitor, Smartphone, Copy, RefreshCw } from 'lucide-react';
-
-interface MetaPreview {
-  title: string;
-  description: string;
-  url: string;
-}
+import React, { useState } from 'react';
+import { Monitor, Smartphone, Copy } from 'lucide-react';
 
 export default function MetaTagGenerator() {
   const [title, setTitle] = useState('');

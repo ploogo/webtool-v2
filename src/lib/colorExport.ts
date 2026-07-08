@@ -20,7 +20,7 @@ interface GlobalColorExport {
   };
 }
 
-export function generateTailwindConfig(title: string, { baseColor, shades }: ColorExport) {
+export function generateTailwindConfig(title: string, { shades }: ColorExport) {
   const config = {
     [title.toLowerCase()]: Object.fromEntries(
       shades.map((shade, index) => [

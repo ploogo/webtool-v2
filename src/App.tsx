@@ -11,11 +11,9 @@ import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
 import HomePage from './components/HomePage';
-import { useAuthStore } from './lib/store';
-import { 
-  FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, LayoutGrid, Home,
-  LogOut
+import {
+  FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash,
+  Calculator, Share2, Code, LayoutGrid, Home
 } from 'lucide-react';
 
 type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
@@ -34,7 +32,6 @@ interface NavCategory {
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user } = useAuthStore();
 
   const navigation: NavCategory[] = [
     {

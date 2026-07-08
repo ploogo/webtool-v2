@@ -6,7 +6,7 @@ export interface ColorShade {
 }
 
 export function generateShades(baseColor: string): ColorShade[] {
-  const { h, s, l } = hexToHSL(baseColor);
+  const { h, s } = hexToHSL(baseColor);
   
   // Generate 10 shades with varying lightness
   const shades: ColorShade[] = [];

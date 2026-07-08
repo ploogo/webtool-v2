@@ -25,13 +25,9 @@ export function generateSEOUrl(text: string, options: URLOptions = {}): string {
   // Ensure no consecutive hyphens
   url = url.replace(/-+/g, '-');
 
-  // Add date if requested
-  if (includeDate) {
-    const year = new Date().getFullYear();
-    url = `${url}-${year}`;
-  }
-
-  // Truncate to maxLength if needed, ensuring we don't cut in the middle of a word
+  // Truncate the slug to maxLength if needed, ensuring we don't cut in the
+  // middle of a word. Done before appending the date so an optional date
+  // suffix is never truncated away.
   if (url.length > maxLength) {
     const truncated = url.substring(0, maxLength);
     const lastHyphen = truncated.lastIndexOf('-');
@@ -40,6 +36,15 @@ export function generateSEOUrl(text: string, options: URLOptions = {}): string {
     } else {
       url = truncated;
     }
+  }
+
+  // Remove trailing hyphen before appending the date
+  url = url.replace(/-+$/, '');
+
+  // Add date if requested
+  if (includeDate) {
+    const year = new Date().getFullYear();
+    url = `${url}-${year}`;
   }
 
   // Remove trailing hyphen if present

@@ -18,19 +18,19 @@ export default function SchemaGenerator() {
     const schema = {
       '@context': 'https://schema.org',
       '@type': selectedType.type,
-      ...Object.entries(formData).reduce((acc, [key, value]) => {
+      ...Object.entries(formData).reduce<Record<string, string | Record<string, string>>>((acc, [key, value]) => {
         if (value) {
           // Handle nested objects
           if (key.includes('.')) {
             const [parent, child] = key.split('.');
             if (!acc[parent]) acc[parent] = {};
-            (acc[parent] as any)[child] = value;
+            (acc[parent] as Record<string, string>)[child] = value;
           } else {
             acc[key] = value;
           }
         }
         return acc;
-      }, {} as any),
+      }, {}),
     };
 
     return JSON.stringify(schema, null, 2);
