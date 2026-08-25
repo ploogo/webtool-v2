@@ -27,7 +27,7 @@ export default function PagePreview({ pageNumber, dataUrl, isSelected, onToggle,
         <img
           src={dataUrl}
           alt={`Page ${pageNumber}`}
-          className="w-full h-full object-cover bg-jet-800"
+          className="w-full h-full object-contain bg-jet-800"
         />
       ) : (
         <div className="absolute inset-0 bg-jet-800 flex items-center justify-center">

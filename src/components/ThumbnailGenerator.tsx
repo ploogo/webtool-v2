@@ -1,11 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import FileUploader from './FileUploader';
 import PagePreview from './PagePreview';
 import GenerateButton from './GenerateButton';
 import ThumbnailGrid from './ThumbnailGrid';
 import PDFErrorDisplay from './PDFErrorDisplay';
-import { validatePDF, PDFValidationResult } from '../lib/pdfProcessing';
-import { processFile, ProcessedFile } from '../lib/fileProcessors';
+import { validatePDF, isPDFFile, PDFValidationResult } from '../lib/pdfProcessing';
+import { extensionForDataUrl } from '../lib/imageFormats';
+import {
+  processFile,
+  ProcessedFile,
+  PREVIEW_MAX_SIZE,
+  THUMBNAIL_MAX_SIZE,
+} from '../lib/fileProcessors';
 
 interface Thumbnail {
   pageNumber: number;
@@ -27,7 +33,24 @@ export default function ThumbnailGenerator() {
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<PDFValidationResult | null>(null);
 
+  // Selecting a new file while the previous one is still rendering would
+  // otherwise let stale previews land in the grid.
+  const requestId = useRef(0);
+  const activeFile = useRef<ProcessedFile | null>(null);
+
+  useEffect(() => {
+    return () => {
+      requestId.current += 1;
+      void activeFile.current?.dispose();
+    };
+  }, []);
+
   const handleFileSelect = useCallback(async (selectedFile: File | null) => {
+    const currentRequest = ++requestId.current;
+
+    void activeFile.current?.dispose();
+    activeFile.current = null;
+
     setFile(selectedFile);
     setSelectedPages(new Set());
     setThumbnails([]);
@@ -39,58 +62,77 @@ export default function ThumbnailGenerator() {
 
     try {
       setLoading(true);
-      
-      // Validate PDF first
-      const validation = await validatePDF(selectedFile);
-      setValidationResult(validation);
-      
-      if (!validation.isValid) {
+
+      let processed: ProcessedFile;
+
+      if (isPDFFile(selectedFile)) {
+        const validation = await validatePDF(selectedFile);
+        if (currentRequest !== requestId.current) {
+          await validation.document?.destroy();
+          return;
+        }
+
+        if (!validation.isValid) {
+          setValidationResult(validation);
+          return;
+        }
+
+        // Reuse the document parsed during validation rather than reading and
+        // parsing the whole file a second time.
+        processed = await processFile(selectedFile, { pdf: validation.document });
+      } else {
+        processed = await processFile(selectedFile);
+      }
+
+      if (currentRequest !== requestId.current) {
+        await processed.dispose();
         return;
       }
 
-      const processed = await processFile(selectedFile);
+      activeFile.current = processed;
       setProcessedFile(processed);
-
-      // For single-page documents, automatically select the page
-      if (processed.totalPages === 1) {
-        setSelectedPages(new Set([1]));
-      }
 
       const previewData: PagePreviewData[] = Array.from(
         { length: processed.totalPages },
-        (_, i) => ({
-          pageNumber: i + 1,
-          dataUrl: null,
-          loading: true,
-        })
+        (_, i) => ({ pageNumber: i + 1, dataUrl: null, loading: true })
       );
       setPreviews(previewData);
 
-      for (let i = 0; i < processed.totalPages; i++) {
-        const pageNumber = i + 1;
-        const dataUrl = await processed.getPage(pageNumber);
+      // Single-page documents have nothing to select, so render the full-size
+      // thumbnail straight away.
+      if (processed.totalPages === 1) {
+        setSelectedPages(new Set([1]));
+        const dataUrl = await processed.getPage(1, THUMBNAIL_MAX_SIZE);
+        if (currentRequest !== requestId.current) return;
+        setPreviews([{ pageNumber: 1, dataUrl, loading: false }]);
+        setThumbnails([{ pageNumber: 1, dataUrl }]);
+        return;
+      }
+
+      for (let pageNumber = 1; pageNumber <= processed.totalPages; pageNumber++) {
+        const dataUrl = await processed.getPage(pageNumber, PREVIEW_MAX_SIZE);
+        if (currentRequest !== requestId.current) return;
         setPreviews(prev =>
           prev.map(p =>
-            p.pageNumber === pageNumber
-              ? { ...p, dataUrl, loading: false }
-              : p
+            p.pageNumber === pageNumber ? { ...p, dataUrl, loading: false } : p
           )
         );
       }
-
-      // For single-page documents, generate thumbnail immediately
-      if (processed.totalPages === 1) {
-        const dataUrl = await processed.getPage(1);
-        setThumbnails([{ pageNumber: 1, dataUrl }]);
-      }
     } catch (err) {
+      if (currentRequest !== requestId.current) return;
+      console.error('Error processing file:', err);
       setValidationResult({
         isValid: false,
-        error: 'An unexpected error occurred while processing the file.',
-        details: { size: selectedFile.size }
+        error:
+          err instanceof Error && err.message
+            ? `An error occurred while processing the file: ${err.message}`
+            : 'An unexpected error occurred while processing the file.',
+        details: { size: selectedFile.size },
       });
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -109,69 +151,84 @@ export default function ThumbnailGenerator() {
   const generateThumbnails = async () => {
     if (!processedFile || selectedPages.size === 0) return;
 
+    const currentRequest = requestId.current;
+
     try {
       setLoading(true);
       const newThumbnails: Thumbnail[] = [];
 
-      for (const pageNumber of selectedPages) {
-        const dataUrl = await processedFile.getPage(pageNumber);
+      for (const pageNumber of Array.from(selectedPages).sort((a, b) => a - b)) {
+        const dataUrl = await processedFile.getPage(pageNumber, THUMBNAIL_MAX_SIZE);
         newThumbnails.push({ pageNumber, dataUrl });
       }
 
+      if (currentRequest !== requestId.current) return;
       setThumbnails(newThumbnails);
     } catch (err) {
+      if (currentRequest !== requestId.current) return;
       console.error('Error generating thumbnails:', err);
       setValidationResult({
         isValid: false,
         error: 'Failed to generate thumbnails. Please try again.',
-        details: { size: file?.size || 0 }
+        details: { size: file?.size || 0 },
       });
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) {
+        setLoading(false);
+      }
     }
   };
 
-  const handleDownload = useCallback(async (dataUrl: string, pageNumber: number, format: string, size: number, filename: string) => {
-    try {
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = dataUrl;
-      });
+  const handleDownload = useCallback(
+    async (dataUrl: string, pageNumber: number, format: string, size: number, filename: string) => {
+      try {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('Failed to load generated image'));
+          img.src = dataUrl;
+        });
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Could not get canvas context');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          throw new Error('Could not get canvas context');
+        }
+
+        const aspectRatio = img.height / img.width;
+        canvas.width = size;
+        canvas.height = Math.max(1, Math.round(size * aspectRatio));
+
+        if (format !== 'png' && format !== 'webp') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const mimeType = `image/${format}`;
+        const quality = format === 'png' ? undefined : 0.9;
+        const convertedImage = canvas.toDataURL(mimeType, quality);
+
+        const link = document.createElement('a');
+        link.href = convertedImage;
+        // Name the file after what the canvas actually encoded, so an
+        // unsupported format never ships as a PNG wearing another extension.
+        link.download = `${filename}.${extensionForDataUrl(convertedImage, format)}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error('Error downloading image:', err);
+        setValidationResult({
+          isValid: false,
+          error: 'Failed to download image. Please try again.',
+          details: { size: file?.size || 0 },
+        });
       }
-
-      const aspectRatio = img.height / img.width;
-      canvas.width = size;
-      canvas.height = size * aspectRatio;
-
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const mimeType = `image/${format}`;
-      const quality = format === 'jpeg' ? 0.9 : undefined;
-      const convertedImage = canvas.toDataURL(mimeType, quality);
-
-      const link = document.createElement('a');
-      link.href = convertedImage;
-      link.download = `${filename}.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error('Error downloading image:', err);
-      setValidationResult({
-        isValid: false,
-        error: 'Failed to download image. Please try again.',
-        details: { size: file?.size || 0 }
-      });
-    }
-  }, [file]);
+    },
+    [file]
+  );
 
   return (
     <div className="relative pb-24">
@@ -182,8 +239,8 @@ export default function ThumbnailGenerator() {
         />
 
         {validationResult && !validationResult.isValid && (
-          <PDFErrorDisplay 
-            error={validationResult.error || 'Unknown error'} 
+          <PDFErrorDisplay
+            error={validationResult.error || 'Unknown error'}
             details={validationResult.details}
           />
         )}

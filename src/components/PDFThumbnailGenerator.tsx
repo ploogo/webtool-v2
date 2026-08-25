@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { pdfjsLib } from '../lib/pdfjs';
+import { pdfjsLib, loadPDFDocument } from '../lib/pdfjs';
 import PDFUploader from './PDFUploader';
 import PagePreview from './PagePreview';
 import GenerateButton from './GenerateButton';
@@ -106,7 +106,7 @@ export default function PDFThumbnailGenerator() {
   const loadPDF = async (pdfFile: File): Promise<pdfjsLib.PDFDocumentProxy | null> => {
     try {
       const arrayBuffer = await pdfFile.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = loadPDFDocument(arrayBuffer);
       return await loadingTask.promise;
     } catch (err) {
       console.error('Error loading PDF:', err);

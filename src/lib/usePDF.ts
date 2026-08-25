@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { pdfjsLib } from './pdfjs';
+import { loadPDFDocument } from './pdfjs';
 
 interface UsePDFReturn {
   file: File | null;
@@ -33,7 +33,7 @@ export function usePDF(): UsePDFReturn {
     try {
       setLoading(true);
       const arrayBuffer = await selectedFile.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = loadPDFDocument(arrayBuffer);
       
       loadingTask.onPassword = (updatePassword, reason) => {
         setError('Password-protected PDFs are not supported.');

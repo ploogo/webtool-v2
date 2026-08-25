@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { pdfjsLib } from './pdfjs';
+import { loadPDFDocument } from './pdfjs';
 
 interface Thumbnail {
   pageNumber: number;
@@ -26,7 +26,7 @@ export function useThumbnails(): UseThumbnailsReturn {
       setError(null);
 
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = loadPDFDocument(arrayBuffer);
       
       loadingTask.onPassword = (updatePassword, reason) => {
         throw new Error('Password-protected PDFs are not supported.');

@@ -11,17 +11,22 @@ const ACCEPTED_TYPES = {
   'application/pdf': 'PDF documents',
 };
 
-const ACCEPT_STRING = Object.keys(ACCEPTED_TYPES).join(',');
+const ACCEPT_STRING = [...Object.keys(ACCEPTED_TYPES), '.pdf'].join(',');
+
+function isAccepted(file: File): boolean {
+  // Some platforms hand over a PDF with an empty or non-standard MIME type, so
+  // fall back to the extension before rejecting the file.
+  if (/\.pdf$/i.test(file.name)) return true;
+
+  return Object.keys(ACCEPTED_TYPES).some(type =>
+    type.endsWith('*') ? file.type.startsWith(type.slice(0, -1)) : file.type === type
+  );
+}
 
 export default function FileUploader({ onFileSelect, currentFileName }: FileUploaderProps) {
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
-    if (file && !Object.keys(ACCEPTED_TYPES).some(type => {
-      if (type.endsWith('*')) {
-        return file.type.startsWith(type.slice(0, -1));
-      }
-      return file.type === type;
-    })) {
+    if (file && !isAccepted(file)) {
       alert('Please select a supported file type:\n' + Object.values(ACCEPTED_TYPES).join('\n'));
       return;
     }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Settings, PackageCheck, Info } from 'lucide-react';
 import FileNamePattern from './FileNamePattern';
+import { isFormatSupported } from '../lib/imageFormats';
 
 interface Thumbnail {
   pageNumber: number;
@@ -18,6 +19,9 @@ const IMAGE_FORMATS = [
   { value: 'webp', label: 'WebP' },
   { value: 'avif', label: 'AVIF' },
 ];
+
+// Offering a format the browser cannot encode just hands back a mislabelled PNG.
+const AVAILABLE_FORMATS = IMAGE_FORMATS.filter(format => isFormatSupported(format.value));
 
 const SIZES = [
   { value: 300, label: 'Small (300px)' },
@@ -118,7 +122,7 @@ export default function ThumbnailGrid({ thumbnails, onDownload }: ThumbnailGridP
                       onChange={(e) => setSelectedFormat(e.target.value)}
                       className="input"
                     >
-                      {IMAGE_FORMATS.map((format) => (
+                      {AVAILABLE_FORMATS.map((format) => (
                         <option key={format.value} value={format.value}>
                           {format.label}
                         </option>
