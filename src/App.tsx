@@ -10,13 +10,12 @@ import SymbolsToolbar from './components/SymbolsToolbar';
 import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
-import HomePage from './components/HomePage';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, LayoutGrid, Home
+  Calculator, Share2, Code, LayoutGrid
 } from 'lucide-react';
 
-type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
+type ActiveTab = 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
 
 interface NavCategory {
   name: string;
@@ -30,17 +29,10 @@ interface NavCategory {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('thumbnails');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigation: NavCategory[] = [
-    {
-      name: 'General',
-      icon: Home,
-      items: [
-        { id: 'home', name: 'Home', icon: Home, description: 'Welcome to WebTool V2' },
-      ],
-    },
     {
       name: 'Media Tools',
       icon: LayoutGrid,
@@ -87,10 +79,6 @@ export default function App() {
   const activeItem = navigation
     .flatMap(category => category.items)
     .find(item => item.id === activeTab);
-
-  if (activeTab === 'home') {
-    return <HomePage onGetStarted={() => setActiveTab('thumbnails')} />;
-  }
 
   return (
     <div className="min-h-screen bg-jet-950">
