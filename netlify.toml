@@ -1,0 +1,29 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Matches .nvmrc and the engines field. .npmrc sets engine-strict, so an
+  # older Node here would fail the build rather than produce a broken bundle.
+  NODE_VERSION = "22"
+
+# The app is a single page with no client-side router, so this only covers
+# someone typing a stray path. Netlify serves an existing file before applying
+# a non-forced rule, which keeps /assets/* and the pdf.js runtime files under
+# /pdfjs/* (cmaps, standard fonts, wasm) reachable.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashed build output is immutable; the pdf.js assets are versioned by the
+# dependency, so they can be cached hard too.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/pdfjs/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
