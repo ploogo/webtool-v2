@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Bell, Menu, ChevronDown, Settings } from 'lucide-react';
 
 interface ColorPreviewProps {

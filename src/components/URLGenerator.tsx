@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { generateSEOUrl } from '../lib/urlUtils';
 import { Copy, RefreshCw } from 'lucide-react';
 

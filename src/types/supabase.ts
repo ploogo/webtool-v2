@@ -53,6 +53,7 @@ export interface Database {
           api_key?: string | null;
           api_requests_count?: number;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -92,6 +93,7 @@ export interface Database {
           updated_at?: string | null;
           public?: boolean | null;
         };
+        Relationships: [];
       };
       objects: {
         Row: {
@@ -102,7 +104,7 @@ export interface Database {
           created_at: string | null;
           updated_at: string | null;
           last_accessed_at: string | null;
-          metadata: Record<string, any> | null;
+          metadata: Record<string, unknown> | null;
         };
         Insert: {
           id?: string;
@@ -112,7 +114,7 @@ export interface Database {
           created_at?: string | null;
           updated_at?: string | null;
           last_accessed_at?: string | null;
-          metadata?: Record<string, any> | null;
+          metadata?: Record<string, unknown> | null;
         };
         Update: {
           id?: string;
@@ -122,8 +124,9 @@ export interface Database {
           created_at?: string | null;
           updated_at?: string | null;
           last_accessed_at?: string | null;
-          metadata?: Record<string, any> | null;
+          metadata?: Record<string, unknown> | null;
         };
+        Relationships: [];
       };
     };
     Views: {

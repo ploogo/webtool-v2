@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, Download, Image as ImageIcon, FileDown, Loader2, RefreshCw, Info } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Download, FileDown, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import FileUploader from './FileUploader';
+import FileUploader, { UploadKind } from './FileUploader';
 
 interface CompressedImage {
   file: File;
@@ -18,7 +18,7 @@ const IMAGE_QUALITY_PRESETS = [
 ] as const;
 
 const OUTPUT_FORMATS = [
-  { value: 'keep', label: 'Keep Original' },
+  { value: 'keep', label: 'Keep Original', lossy: true },
   { value: 'jpeg', label: 'JPEG', lossy: true },
   { value: 'webp', label: 'WebP', lossy: true },
   { value: 'png', label: 'PNG', lossy: false },
@@ -36,6 +36,8 @@ const COMPRESSION_MODES = {
     formats: ['png'],
   },
 } as const;
+
+const IMAGES_ONLY: UploadKind[] = ['image'];
 
 export default function ImageCompressor() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -57,9 +59,19 @@ export default function ImageCompressor() {
   };
 
   const calculateReduction = (original: number, compressed: number) => {
-    const reduction = ((original - compressed) / original) * 100;
-    return Math.round(reduction);
+    if (!original) return 0;
+    return Math.round(((original - compressed) / original) * 100);
   };
+
+  const originalPreview = useMemo(
+    () => (selectedFile ? URL.createObjectURL(selectedFile) : null),
+    [selectedFile]
+  );
+
+  useEffect(() => {
+    if (!originalPreview) return;
+    return () => URL.revokeObjectURL(originalPreview);
+  }, [originalPreview]);
 
   const handleFileSelect = useCallback((file: File | null) => {
     setSelectedFile(file);
@@ -86,7 +98,11 @@ export default function ImageCompressor() {
         maxWidthOrHeight: selectedPreset.name === 'Custom' ? customMaxSize : selectedPreset.maxWidthOrHeight,
         useWebWorker: true,
         fileType: selectedFormat.value === 'keep' ? undefined : `image/${selectedFormat.value}`,
-        quality: compressionMode === 'lossless' ? 1 : (selectedPreset.name === 'Custom' ? customQuality / 100 : selectedPreset.quality),
+        initialQuality: compressionMode === 'lossless'
+          ? 1
+          : selectedPreset.name === 'Custom'
+            ? customQuality / 100
+            : selectedPreset.quality,
       };
 
       const compressedFile = await imageCompression(selectedFile, options);
@@ -111,8 +127,8 @@ export default function ImageCompressor() {
 
     const link = document.createElement('a');
     link.href = compressedImage.preview;
-    const extension = selectedFormat.value === 'keep' 
-      ? selectedFile?.name.split('.').pop() 
+    const extension = selectedFormat.value === 'keep'
+      ? compressedImage.file.type.split('/')[1] || selectedFile?.name.split('.').pop() || 'img'
       : selectedFormat.value;
     const filename = `compressed_${selectedFile?.name.replace(/\.[^/.]+$/, '')}.${extension}`;
     link.download = filename;
@@ -129,6 +145,7 @@ export default function ImageCompressor() {
           <FileUploader
             onFileSelect={handleFileSelect}
             currentFileName={selectedFile?.name || null}
+            accept={IMAGES_ONLY}
           />
 
           {selectedFile && (
@@ -300,11 +317,13 @@ export default function ImageCompressor() {
                 </p>
               </div>
               <div className="p-4">
-                <img
-                  src={URL.createObjectURL(selectedFile)}
-                  alt={`Original image: ${selectedFile.name}`}
-                  className="w-full rounded-lg"
-                />
+                {originalPreview && (
+                  <img
+                    src={originalPreview}
+                    alt={`Original image: ${selectedFile.name}`}
+                    className="w-full rounded-lg"
+                  />
+                )}
               </div>
             </div>
           )}

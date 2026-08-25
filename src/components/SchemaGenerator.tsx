@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Copy, Search, HelpCircle, Code, RefreshCw } from 'lucide-react';
 import { schemaTypes, SchemaType, SchemaField } from '../lib/schemaTypes';
 
 interface FormData {
   [key: string]: string;
+}
+
+type SchemaValue = string | Record<string, string>;
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$',
+};
+
+function currencySymbol(code?: string): string {
+  if (!code) return '$';
+  return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code.toUpperCase()} `;
+}
+
+/** Whole stars to draw, clamped so the preview cannot render a negative count. */
+function ratingStars(value?: string): number {
+  const rating = Math.round(Number(value));
+  if (!Number.isFinite(rating) || rating <= 0) return 0;
+  return Math.min(5, rating);
 }
 
 export default function SchemaGenerator() {
@@ -18,19 +36,21 @@ export default function SchemaGenerator() {
     const schema = {
       '@context': 'https://schema.org',
       '@type': selectedType.type,
-      ...Object.entries(formData).reduce((acc, [key, value]) => {
+      ...Object.entries(formData).reduce<Record<string, SchemaValue>>((acc, [key, value]) => {
         if (value) {
           // Handle nested objects
           if (key.includes('.')) {
             const [parent, child] = key.split('.');
-            if (!acc[parent]) acc[parent] = {};
-            (acc[parent] as any)[child] = value;
+            const existing = acc[parent];
+            const nested = typeof existing === 'object' && existing !== null ? existing : {};
+            nested[child] = value;
+            acc[parent] = nested;
           } else {
             acc[key] = value;
           }
         }
         return acc;
-      }, {} as any),
+      }, {}),
     };
 
     return JSON.stringify(schema, null, 2);
@@ -129,18 +149,20 @@ export default function SchemaGenerator() {
               {formData.name || 'Product Name'}
             </h3>
             <div className="text-xl font-medium text-brand-coral">
-              {formData.offers?.price ? `$${formData.offers.price}` : '$0.00'}
+              {formData['offers.price']
+                ? `${currencySymbol(formData['offers.priceCurrency'])}${formData['offers.price']}`
+                : '$0.00'}
             </div>
             <p className="text-sm text-gray-400">
               {formData.description || 'Product description will appear here...'}
             </p>
             <div className="flex items-center gap-2 text-sm">
               <div className="flex text-yellow-400">
-                {'★'.repeat(Number(formData.aggregateRating?.ratingValue) || 0)}
-                {'☆'.repeat(5 - (Number(formData.aggregateRating?.ratingValue) || 0))}
+                {'★'.repeat(ratingStars(formData['aggregateRating.ratingValue']))}
+                {'☆'.repeat(5 - ratingStars(formData['aggregateRating.ratingValue']))}
               </div>
               <span className="text-gray-500">
-                {formData.aggregateRating?.reviewCount || '0'} reviews
+                {formData['aggregateRating.reviewCount'] || '0'} reviews
               </span>
             </div>
           </div>

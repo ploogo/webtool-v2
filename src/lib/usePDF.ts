@@ -33,14 +33,9 @@ export function usePDF(): UsePDFReturn {
     try {
       setLoading(true);
       const arrayBuffer = await selectedFile.arrayBuffer();
-      const loadingTask = loadPDFDocument(arrayBuffer);
-      
-      loadingTask.onPassword = (updatePassword, reason) => {
-        setError('Password-protected PDFs are not supported.');
-        updatePassword('');
-      };
-
-      const pdf = await loadingTask.promise;
+      // Supplying an empty password just made pdf.js ask again in a loop; let
+      // it reject with a PasswordException and report that instead.
+      const pdf = await loadPDFDocument(arrayBuffer).promise;
       setNumPages(pdf.numPages);
     } catch (err) {
       console.error('Error loading PDF:', err);

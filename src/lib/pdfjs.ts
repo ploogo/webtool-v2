@@ -5,7 +5,14 @@ import * as pdfjsLib from 'pdfjs-dist';
 // fake worker.
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+// pdfjs-dist 5.4.530 ships declarations that omit several members it really
+// exports (GlobalWorkerOptions among them), so reach it through a narrow cast
+// rather than dropping the type check on the whole module.
+const { GlobalWorkerOptions } = pdfjsLib as unknown as {
+  GlobalWorkerOptions: { workerSrc: string };
+};
+
+GlobalWorkerOptions.workerSrc = workerUrl;
 
 // Runtime assets copied out of pdfjs-dist by the `pdfjs-assets` Vite plugin.
 const assetBase = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pdfjs`;

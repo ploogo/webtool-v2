@@ -1,4 +1,13 @@
-import { ColorShade } from './colorUtils';
+import { ColorShade, SHADE_STEPS } from './colorUtils';
+
+/**
+ * Maps a shade's position to its scale step. The previous arithmetic produced
+ * 50, 200, 300 ... 1000 — skipping 100 and inventing a step Tailwind has no
+ * name for.
+ */
+function shadeStep(index: number): number {
+  return SHADE_STEPS[index] ?? (index + 1) * 100;
+}
 
 interface ColorExport {
   baseColor: string;
@@ -20,11 +29,11 @@ interface GlobalColorExport {
   };
 }
 
-export function generateTailwindConfig(title: string, { baseColor, shades }: ColorExport) {
+export function generateTailwindConfig(title: string, { shades }: ColorExport) {
   const config = {
     [title.toLowerCase()]: Object.fromEntries(
       shades.map((shade, index) => [
-        String((index + 1) * 100 - (index === 0 ? 50 : 0)),
+        String(shadeStep(index)),
         shade.hex,
       ])
     ),
@@ -45,7 +54,7 @@ export function generateGlobalTailwindConfig(colorData: GlobalColorExport) {
       ...acc,
       [key.toLowerCase()]: Object.fromEntries(
         value.shades.map((shade, index) => [
-          String((index + 1) * 100 - (index === 0 ? 50 : 0)),
+          String(shadeStep(index)),
           shade.hex,
         ])
       ),
@@ -54,7 +63,7 @@ export function generateGlobalTailwindConfig(colorData: GlobalColorExport) {
       ...acc,
       [key.toLowerCase()]: Object.fromEntries(
         value.shades.map((shade, index) => [
-          String((index + 1) * 100 - (index === 0 ? 50 : 0)),
+          String(shadeStep(index)),
           shade.hex,
         ])
       ),
@@ -77,7 +86,7 @@ export function generateCSSVariables(title: string, { baseColor, shades }: Color
 ${shades
   .map(
     (shade, index) =>
-      `  --${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `  --${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}
 }`;
@@ -92,7 +101,7 @@ export function generateGlobalCSSVariables(colorData: GlobalColorExport) {
 ${value.shades
   .map(
     (shade, index) =>
-      `  --${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `  --${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}`;
     })
@@ -106,7 +115,7 @@ ${value.shades
 ${value.shades
   .map(
     (shade, index) =>
-      `  --${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `  --${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}`;
     })
@@ -126,7 +135,7 @@ export function generateSassVariables(title: string, { baseColor, shades }: Colo
 ${shades
   .map(
     (shade, index) =>
-      `$${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `$${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}`;
 }
@@ -140,7 +149,7 @@ $${prefix}-base: ${value.baseColor};
 ${value.shades
   .map(
     (shade, index) =>
-      `$${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `$${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}`;
     })
@@ -154,7 +163,7 @@ $${prefix}-base: ${value.baseColor};
 ${value.shades
   .map(
     (shade, index) =>
-      `$${prefix}-${(index + 1) * 100 - (index === 0 ? 50 : 0)}: ${shade.hex};`
+      `$${prefix}-${shadeStep(index)}: ${shade.hex};`
   )
   .join('\n')}`;
     })
@@ -166,13 +175,13 @@ ${value.shades
 ${supportingPalettes}`;
 }
 
-export function generateJSON(title: string, { baseColor, shades }: ColorExport) {
+export function generateJSON(_title: string, { baseColor, shades }: ColorExport) {
   return JSON.stringify(
     {
       base: baseColor,
       shades: Object.fromEntries(
         shades.map((shade, index) => [
-          String((index + 1) * 100 - (index === 0 ? 50 : 0)),
+          String(shadeStep(index)),
           {
             hex: shade.hex,
             hsl: shade.hsl,

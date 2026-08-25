@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Monitor, Smartphone, Copy, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { Monitor, Smartphone, Copy } from 'lucide-react';
 
-interface MetaPreview {
-  title: string;
-  description: string;
-  url: string;
+/**
+ * Attribute values are quoted with ", so an unescaped quote in the title or
+ * description silently truncated the tag and broke everything after it.
+ */
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 export default function MetaTagGenerator() {
@@ -16,23 +22,28 @@ export default function MetaTagGenerator() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const generateMetaTags = () => {
+    const safeTitle = escapeAttribute(title);
+    const safeDescription = escapeAttribute(description);
+    const safeUrl = escapeAttribute(url);
+    const safeKeywords = escapeAttribute(keywords);
+
     return `<!-- Primary Meta Tags -->
-<title>${title}</title>
-<meta name="title" content="${title}">
-<meta name="description" content="${description}">
-${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
+<title>${safeTitle}</title>
+<meta name="title" content="${safeTitle}">
+<meta name="description" content="${safeDescription}">
+${keywords ? `<meta name="keywords" content="${safeKeywords}">` : ''}
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="${url}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
+<meta property="og:url" content="${safeUrl}">
+<meta property="og:title" content="${safeTitle}">
+<meta property="og:description" content="${safeDescription}">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="${url}">
-<meta property="twitter:title" content="${title}">
-<meta property="twitter:description" content="${description}">`;
+<meta property="twitter:url" content="${safeUrl}">
+<meta property="twitter:title" content="${safeTitle}">
+<meta property="twitter:description" content="${safeDescription}">`;
   };
 
   const copyToClipboard = (text: string, field: string) => {
@@ -45,12 +56,12 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
     active ? 'btn-icon-primary' : 'btn-icon-ghost'
   }`;
 
-  const getCharacterCount = (text: string) => {
+  const getCharacterCount = (text: string, limit: number) => {
     return {
       count: text.length,
-      status: text.length > 0 
-        ? text.length <= (text === title ? 60 : 160) 
-          ? 'text-green-500' 
+      status: text.length > 0
+        ? text.length <= limit
+          ? 'text-green-500'
           : 'text-red-500'
         : 'text-gray-400'
     };
@@ -75,8 +86,8 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
                 maxLength={60}
                 className="input pr-16"
               />
-              <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${getCharacterCount(title).status}`}>
-                {getCharacterCount(title).count}/60
+              <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${getCharacterCount(title, 60).status}`}>
+                {getCharacterCount(title, 60).count}/60
               </span>
             </div>
             <p className="text-xs text-gray-400">
@@ -98,8 +109,8 @@ ${keywords ? `<meta name="keywords" content="${keywords}">` : ''}
                 rows={3}
                 className="input pr-16"
               />
-              <span className={`absolute right-2 top-2 text-xs ${getCharacterCount(description).status}`}>
-                {getCharacterCount(description).count}/160
+              <span className={`absolute right-2 top-2 text-xs ${getCharacterCount(description, 160).status}`}>
+                {getCharacterCount(description, 160).count}/160
               </span>
             </div>
             <p className="text-xs text-gray-400">

@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle, FileWarning, Lock, FileX, HelpCircle } from 'lucide-react';
 import { getReadableFileSize } from '../lib/pdfProcessing';
 

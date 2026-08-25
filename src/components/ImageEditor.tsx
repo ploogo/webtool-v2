@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import FileUploader from './FileUploader';
+import FileUploader, { UploadKind } from './FileUploader';
 import { Download, Loader2, Lock, Unlock } from 'lucide-react';
+import { isFormatSupported } from '../lib/imageFormats';
 
 interface ImageDimensions {
   width: number;
@@ -19,11 +20,14 @@ const ASPECT_RATIOS = [
 ];
 
 const OUTPUT_FORMATS = [
-  { value: 'jpeg', label: 'JPEG', description: 'Best for photographs and complex images' },
-  { value: 'png', label: 'PNG', description: 'Best for graphics with transparency' },
-  { value: 'webp', label: 'WebP', description: 'Modern format with excellent compression' },
-  { value: 'avif', label: 'AVIF', description: 'Next-gen format with superior compression' },
+  { value: 'jpeg', label: 'JPEG', quality: 0.92, description: 'Best for photographs and complex images' },
+  { value: 'png', label: 'PNG', quality: undefined, description: 'Best for graphics with transparency' },
+  { value: 'webp', label: 'WebP', quality: 0.92, description: 'Modern format with excellent compression' },
+  { value: 'avif', label: 'AVIF', quality: 0.6, description: 'Next-gen format with superior compression' },
 ];
+
+// A format the browser cannot encode silently comes back as PNG.
+const AVAILABLE_FORMATS = OUTPUT_FORMATS.filter(format => isFormatSupported(format.value));
 
 const PRESET_SIZES = [
   { width: 1200, height: 630, label: 'Social Media', description: 'Optimal size for social media sharing' },
@@ -32,6 +36,8 @@ const PRESET_SIZES = [
   { width: 1280, height: 720, label: 'HD Video', description: 'Standard HD video resolution' },
   { width: 1920, height: 1080, label: 'Full HD', description: 'Full HD resolution for high-quality displays' },
 ];
+
+const IMAGES_ONLY: UploadKind[] = ['image'];
 
 export default function ImageEditor() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,8 +75,7 @@ export default function ImageEditor() {
     const { width, height } = e.currentTarget;
     setOriginalDimensions({ width, height });
     
-    const aspect = maintainAspectRatio ? customSize.width / customSize.height : undefined;
-    const crop = {
+    const crop: Crop = {
       unit: 'px',
       width: Math.min(width, height * (customSize.width / customSize.height)),
       height: Math.min(height, width * (customSize.height / customSize.width)),
@@ -82,7 +87,7 @@ export default function ImageEditor() {
     crop.y = (height - crop.height) / 2;
     
     setCrop(crop);
-  }, [customSize.width, customSize.height, maintainAspectRatio]);
+  }, [customSize.width, customSize.height]);
 
   const handleAspectRatioSelect = useCallback((ratio: number) => {
     setSelectedAspectRatio(ratio);
@@ -160,6 +165,11 @@ export default function ImageEditor() {
 
       ctx.imageSmoothingQuality = 'high';
 
+      if (selectedFormat.value === 'jpeg') {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
       const sourceX = completedCrop.x * scaleX;
       const sourceY = completedCrop.y * scaleY;
       const sourceWidth = completedCrop.width * scaleX;
@@ -177,19 +187,23 @@ export default function ImageEditor() {
         customSize.height
       );
 
-      const blob = await new Promise<Blob>((resolve) => {
+      const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob(
-          (blob) => resolve(blob!),
-          selectedFormat.value,
+          resolve,
+          `image/${selectedFormat.value}`,
           selectedFormat.quality
         );
       });
 
+      if (!blob) throw new Error('Failed to encode image');
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const filename = selectedFile?.name.replace(/\.[^/.]+$/, '') || 'image';
+      // Name the file after what the canvas actually produced.
+      const extension = blob.type.split('/')[1] || selectedFormat.value;
       link.href = url;
-      link.download = `${filename}-edited.${selectedFormat.ext}`;
+      link.download = `${filename}-edited.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -208,6 +222,7 @@ export default function ImageEditor() {
         <FileUploader
           onFileSelect={onSelectFile}
           currentFileName={selectedFile?.name || null}
+          accept={IMAGES_ONLY}
         />
 
         {/* Preview and Controls */}
@@ -289,7 +304,7 @@ export default function ImageEditor() {
               <div className="card space-y-4">
                 <h3 className="font-medium text-white">Export Format</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {OUTPUT_FORMATS.map((format) => (
+                  {AVAILABLE_FORMATS.map((format) => (
                     <button
                       key={format.value}
                       onClick={() => setSelectedFormat(format)}

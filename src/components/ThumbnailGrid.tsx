@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Download, Settings, PackageCheck, Info } from 'lucide-react';
 import FileNamePattern from './FileNamePattern';
 import { isFormatSupported } from '../lib/imageFormats';

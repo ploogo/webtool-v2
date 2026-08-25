@@ -2,6 +2,15 @@ export function hexToHSL(hex: string): { h: number; s: number; l: number } {
   // Remove the hash if present
   hex = hex.replace(/^#/, '');
 
+  // Expand shorthand (#abc), which otherwise parsed to NaN
+  if (/^[0-9a-f]{3}$/i.test(hex)) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
+
+  if (!/^[0-9a-f]{6}$/i.test(hex)) {
+    return { h: 0, s: 0, l: 0 };
+  }
+
   // Parse the hex values
   const r = parseInt(hex.slice(0, 2), 16) / 255;
   const g = parseInt(hex.slice(2, 4), 16) / 255;

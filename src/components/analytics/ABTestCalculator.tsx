@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Calculator, Trash2, PlusCircle, BarChart3 } from 'lucide-react';
 
 interface Variant {
@@ -7,16 +7,44 @@ interface Variant {
   conversions: number;
 }
 
+interface TestResult {
+  winner: string;
+  confidence: number;
+  improvement: number;
+}
+
+/**
+ * Abramowitz & Stegun 7.1.26 approximation of the error function. JavaScript
+ * has no Math.erf, so the previous call threw a TypeError the moment anyone
+ * pressed Calculate.
+ */
+function erf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const absX = Math.abs(x);
+
+  const t = 1 / (1 + 0.3275911 * absX);
+  const y =
+    1 -
+    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t +
+      0.254829592) *
+      t *
+      Math.exp(-absX * absX);
+
+  return sign * y;
+}
+
+/** Two-tailed normal confidence, as a percentage, for a given z-score. */
+function confidenceFromZ(z: number): number {
+  return erf(z / Math.SQRT2) * 100;
+}
+
 export default function ABTestCalculator() {
   const [variants, setVariants] = useState<Variant[]>([
     { name: 'Control', visitors: 0, conversions: 0 },
     { name: 'Variant A', visitors: 0, conversions: 0 },
   ]);
-  const [results, setResults] = useState<{
-    winner?: string;
-    confidence?: number;
-    improvement?: number;
-  } | null>(null);
+  const [results, setResults] = useState<TestResult | null>(null);
+  const [resultError, setResultError] = useState<string | null>(null);
 
   const addVariant = () => {
     const variantName = `Variant ${String.fromCharCode(65 + variants.length - 1)}`;
@@ -29,51 +57,68 @@ export default function ABTestCalculator() {
     }
   };
 
-  const updateVariant = (index: number, field: keyof Variant, value: string | number) => {
+  const updateVariant = (index: number, field: keyof Variant, value: string) => {
+    // The numeric fields are typed as numbers, but the input hands back a
+    // string. Storing it as-is left visitors/conversions holding strings, so
+    // later comparisons ran lexicographically ("140" > "1000").
+    const parsed: string | number =
+      field === 'name' ? value : Math.max(0, Number(value) || 0);
+
     const newVariants = [...variants];
-    newVariants[index] = {
-      ...newVariants[index],
-      [field]: typeof value === 'string' ? value : Math.max(0, Number(value)),
-    };
+    newVariants[index] = { ...newVariants[index], [field]: parsed };
     setVariants(newVariants);
   };
 
   const calculateResults = () => {
-    // Z-score for 95% confidence level
-    const Z = 1.96;
     const control = variants[0];
-    let winner = null;
-    let maxImprovement = 0;
-    let highestConfidence = 0;
+
+    // Rates are undefined without traffic, and every downstream number would
+    // come out NaN.
+    const missingTraffic = variants.find(variant => variant.visitors <= 0);
+    if (missingTraffic) {
+      setResults(null);
+      setResultError(`Enter the number of visitors for ${missingTraffic.name}.`);
+      return;
+    }
+
+    const overCounted = variants.find(variant => variant.conversions > variant.visitors);
+    if (overCounted) {
+      setResults(null);
+      setResultError(`${overCounted.name} has more conversions than visitors.`);
+      return;
+    }
 
     const controlRate = control.conversions / control.visitors;
 
+    let best: TestResult | null = null;
+
     variants.slice(1).forEach(variant => {
       const variantRate = variant.conversions / variant.visitors;
-      const improvement = ((variantRate - controlRate) / controlRate) * 100;
+      const improvement = controlRate === 0
+        ? (variantRate > 0 ? Infinity : 0)
+        : ((variantRate - controlRate) / controlRate) * 100;
 
-      // Standard error calculation
+      // Standard error of the difference between two proportions
       const se = Math.sqrt(
         (controlRate * (1 - controlRate)) / control.visitors +
         (variantRate * (1 - variantRate)) / variant.visitors
       );
 
-      // Z-score calculation
-      const z = Math.abs(variantRate - controlRate) / se;
-      const confidence = (0.5 * (1 + Math.erf(z / Math.sqrt(2)))) * 100;
+      // With no variance at all the test says nothing either way.
+      if (se === 0) return;
 
-      if (confidence > 95 && improvement > maxImprovement) {
-        winner = variant.name;
-        maxImprovement = improvement;
-        highestConfidence = confidence;
+      const z = Math.abs(variantRate - controlRate) / se;
+      const confidence = confidenceFromZ(z);
+
+      if (confidence > 95 && improvement > 0 && (!best || improvement > best.improvement)) {
+        best = { winner: variant.name, confidence, improvement };
       }
     });
 
-    setResults(winner ? {
-      winner,
-      confidence: highestConfidence,
-      improvement: maxImprovement,
-    } : null);
+    setResults(best);
+    setResultError(
+      best ? null : 'No variant beat the control at 95% confidence yet.'
+    );
   };
 
   const getConversionRate = (variant: Variant) => {
@@ -158,6 +203,12 @@ export default function ABTestCalculator() {
         </button>
       </div>
 
+      {/* With no winner the panel below stays hidden, so say why rather than
+          leaving the button looking broken. */}
+      {resultError && !results && (
+        <div className="card text-sm text-gray-300">{resultError}</div>
+      )}
+
       {/* Results */}
       {results && (
         <div className="card space-y-6">
@@ -176,13 +227,16 @@ export default function ABTestCalculator() {
             <div className="card bg-navy-800">
               <div className="text-sm text-gray-400">Confidence Level</div>
               <div className="text-xl font-medium text-white mt-1">
-                {results.confidence?.toFixed(2)}%
+                {results.confidence.toFixed(2)}%
               </div>
             </div>
             <div className="card bg-navy-800">
               <div className="text-sm text-gray-400">Improvement</div>
               <div className="text-xl font-medium text-white mt-1">
-                {results.improvement > 0 ? '+' : ''}{results.improvement?.toFixed(2)}%
+                {results.improvement > 0 ? '+' : ''}
+                {Number.isFinite(results.improvement)
+                  ? `${results.improvement.toFixed(2)}%`
+                  : '∞'}
               </div>
             </div>
           </div>

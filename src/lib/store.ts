@@ -2,10 +2,19 @@ import { create } from 'zustand';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
+/**
+ * Features that are simply on or off per tier. The numeric entries in
+ * TIER_LIMITS are quotas, not access flags, and returning one of those from an
+ * access check reads as "allowed" for every tier.
+ */
+export type BooleanFeature = 'batchProcessing' | 'apiAccess' | 'customExports';
+
 interface User {
   id: string;
   email: string;
   username: string;
+  avatar_url?: string | null;
+  apiKey?: string | null;
   subscriptionTier: SubscriptionTier;
   subscriptionEndsAt: Date | null;
   usageThisMonth: {
@@ -23,7 +32,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   clearError: () => void;
   updateUsage: (type: 'pdfConversions' | 'imageCompressions') => Promise<boolean>;
-  checkSubscriptionAccess: (feature: keyof typeof TIER_LIMITS) => boolean;
+  checkSubscriptionAccess: (feature: BooleanFeature) => boolean;
   upgradeSubscription: (tier: SubscriptionTier) => Promise<void>;
 }
 
@@ -78,7 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: false,
   error: null,
 
-  signIn: async (email: string, password: string) => {
+  signIn: async (_email: string, _password: string) => {
     try {
       set({ loading: true, error: null });
       // Mock successful login
@@ -91,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signUp: async (email: string, password: string, username: string) => {
+  signUp: async (_email: string, _password: string, _username: string) => {
     try {
       set({ loading: true, error: null });
       // Mock successful registration
@@ -149,7 +158,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  checkSubscriptionAccess: (feature: keyof typeof TIER_LIMITS) => {
+  checkSubscriptionAccess: (feature: BooleanFeature) => {
     const user = get().user;
     if (!user) return false;
     return TIER_LIMITS[feature][user.subscriptionTier];

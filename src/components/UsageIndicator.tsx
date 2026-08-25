@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuthStore, TIER_LIMITS } from '../lib/store';
 
 interface UsageIndicatorProps {

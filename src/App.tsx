@@ -11,11 +11,9 @@ import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
 import HomePage from './components/HomePage';
-import { useAuthStore } from './lib/store';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, LayoutGrid, Home,
-  LogOut
+  Calculator, Share2, Code, LayoutGrid, Home
 } from 'lucide-react';
 
 type ActiveTab = 'home' | 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
@@ -34,7 +32,6 @@ interface NavCategory {
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user } = useAuthStore();
 
   const navigation: NavCategory[] = [
     {
@@ -86,6 +83,10 @@ export default function App() {
       ],
     },
   ];
+
+  const activeItem = navigation
+    .flatMap(category => category.items)
+    .find(item => item.id === activeTab);
 
   if (activeTab === 'home') {
     return <HomePage onGetStarted={() => setActiveTab('thumbnails')} />;
@@ -165,20 +166,14 @@ export default function App() {
       <div className="lg:pl-64">
         <main className="min-h-screen pt-16 lg:pt-0">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            {activeTab !== 'home' && (
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">
-                  {navigation
-                    .flatMap(category => category.items)
-                    .find(item => item.id === activeTab)?.name}
-                </h1>
-                <p className="mt-2 text-jet-300">
-                  {navigation
-                    .flatMap(category => category.items)
-                    .find(item => item.id === activeTab)?.description}
-                </p>
-              </div>
-            )}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-white">
+                {activeItem?.name}
+              </h1>
+              <p className="mt-2 text-jet-300">
+                {activeItem?.description}
+              </p>
+            </div>
 
             {activeTab === 'thumbnails' ? (
               <ThumbnailGenerator />

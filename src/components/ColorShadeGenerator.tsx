@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { generateShades } from '../lib/colorUtils';
+import { useState, useCallback, useMemo } from 'react';
+import { generateShades, toShade } from '../lib/colorUtils';
 import ColorPaletteSection from './ColorPaletteSection';
 import ColorPreview from './ColorPreview';
 import GlobalExportButton from './GlobalExportButton';
@@ -65,17 +65,29 @@ export default function ColorShadeGenerator() {
     },
   });
 
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  // Scoped to one palette: a bare index lit up the same swatch in every palette.
+  const [copied, setCopied] = useState<{ paletteId: string; index: number } | null>(null);
+
+  const supportingKeys = (Object.keys(supportingColors) as Array<keyof SupportingColors>)
+    .filter((key): key is keyof Omit<SupportingColors, 'shades'> => key !== 'shades');
 
   // Prepare export data
   const exportData = useMemo(() => {
-    const palettes = mainPalettes.reduce((acc, palette) => ({
-      ...acc,
-      [palette.name]: {
-        baseColor: palette.color,
-        shades: palette.shades,
-      },
-    }), {});
+    const palettes = mainPalettes.reduce((acc, palette) => {
+      // Custom palettes can share a name; fall back to a suffix so they do not
+      // overwrite one another in the export.
+      let key = palette.name;
+      let suffix = 2;
+      while (key in acc) key = `${palette.name}-${suffix++}`;
+
+      return {
+        ...acc,
+        [key]: {
+          baseColor: palette.color,
+          shades: palette.shades,
+        },
+      };
+    }, {} as Record<string, { baseColor: string; shades: { hex: string; hsl: string }[] }>);
 
     const supporting = Object.keys(supportingColors).reduce((acc, key) => {
       if (key === 'shades') return acc;
@@ -108,9 +120,7 @@ export default function ColorShadeGenerator() {
           ? {
               ...palette,
               shades: palette.shades.map((shade, idx) =>
-                idx === shadeIndex
-                  ? { ...shade, hex: newColor }
-                  : shade
+                idx === shadeIndex ? toShade(newColor) : shade
               ),
             }
           : palette
@@ -135,18 +145,16 @@ export default function ColorShadeGenerator() {
       shades: {
         ...prev.shades,
         [key]: prev.shades[key].map((shade, idx) =>
-          idx === shadeIndex
-            ? { ...shade, hex: newColor }
-            : shade
+          idx === shadeIndex ? toShade(newColor) : shade
         ),
       },
     }));
   }, []);
 
-  const copyToClipboard = useCallback((text: string, index: number) => {
+  const copyToClipboard = useCallback((paletteId: string, text: string, index: number) => {
     navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 1500);
+    setCopied({ paletteId, index });
+    setTimeout(() => setCopied(null), 1500);
   }, []);
 
   const removePalette = useCallback((id: string) => {
@@ -195,8 +203,8 @@ export default function ColorShadeGenerator() {
               shades={palette.shades}
               onColorChange={(color) => handleColorChange(palette.id, color)}
               onShadeChange={(index, color) => handleShadeChange(palette.id, index, color)}
-              onCopy={copyToClipboard}
-              copiedIndex={copiedIndex}
+              onCopy={(text, index) => copyToClipboard(palette.id, text, index)}
+              copiedIndex={copied?.paletteId === palette.id ? copied.index : null}
               onRemove={mainPalettes.length > 1 ? () => removePalette(palette.id) : undefined}
             />
           </div>
@@ -223,9 +231,7 @@ export default function ColorShadeGenerator() {
         </div>
         
         <div className="space-y-6">
-          {(Object.keys(supportingColors) as Array<keyof Omit<SupportingColors, 'shades'>>).map(key => {
-            if (key === 'shades') return null;
-            return (
+          {supportingKeys.map(key => (
               <div key={key} className="bg-jet-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-jet-800/50">
                 <ColorPaletteSection
                   title={key.charAt(0).toUpperCase() + key.slice(1)}
@@ -234,12 +240,11 @@ export default function ColorShadeGenerator() {
                   shades={supportingColors.shades[key]}
                   onColorChange={(color) => handleSupportingColorChange(key, color)}
                   onShadeChange={(index, color) => handleSupportingShadeChange(key, index, color)}
-                  onCopy={copyToClipboard}
-                  copiedIndex={copiedIndex}
+                  onCopy={(text, index) => copyToClipboard(key, text, index)}
+                  copiedIndex={copied?.paletteId === key ? copied.index : null}
                 />
               </div>
-            );
-          })}
+          ))}
         </div>
       </div>
 

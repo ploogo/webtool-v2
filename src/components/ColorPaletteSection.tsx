@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ColorShade } from '../lib/colorUtils';
 import { Copy, Info, Trash2 } from 'lucide-react';
 import ExportOptions from './ExportOptions';
@@ -28,17 +28,32 @@ export default function ColorPaletteSection({
 }: ColorPaletteSectionProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingBase, setEditingBase] = useState(false);
+  // Hex fields are only committed once they parse, but they still have to hold
+  // whatever is being typed. Rejecting the keystroke outright, as before, made
+  // the inputs impossible to edit at all.
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  const draftKey = (index?: number) => (typeof index === 'number' ? `shade-${index}` : 'base');
 
   const handleColorInputChange = (value: string, index?: number) => {
-    // Validate hex color format
-    const isValidHex = /^#[0-9A-Fa-f]{6}$/.test(value);
-    if (!isValidHex) return;
+    setDraft(prev => ({ ...prev, [draftKey(index)]: value }));
+
+    if (!/^#[0-9A-Fa-f]{6}$/.test(value)) return;
 
     if (typeof index === 'number') {
       onShadeChange(index, value);
     } else {
       onColorChange(value);
     }
+  };
+
+  const handleColorInputBlur = (index?: number) => {
+    // Drop an unparsable draft so the field snaps back to the live value.
+    setDraft(prev => {
+      const next = { ...prev };
+      delete next[draftKey(index)];
+      return next;
+    });
   };
 
   return (
@@ -66,10 +81,13 @@ export default function ColorPaletteSection({
             />
             <input
               type="text"
-              value={baseColor}
+              value={draft.base ?? baseColor}
               onChange={(e) => handleColorInputChange(e.target.value)}
               onFocus={() => setEditingBase(true)}
-              onBlur={() => setEditingBase(false)}
+              onBlur={() => {
+                setEditingBase(false);
+                handleColorInputBlur();
+              }}
               className={`w-20 px-1 py-0.5 text-sm font-mono border rounded text-white bg-jet-800 ${
                 editingBase ? 'border-neon-500' : 'border-jet-700'
               }`}
@@ -104,7 +122,7 @@ export default function ColorPaletteSection({
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {shades.map((shade, index) => (
           <div
-            key={shade.hex}
+            key={index}
             className="relative group rounded-lg overflow-hidden shadow-md"
             style={{ backgroundColor: shade.hex }}
           >
@@ -122,10 +140,13 @@ export default function ColorPaletteSection({
                       />
                       <input
                         type="text"
-                        value={shade.hex}
+                        value={draft[`shade-${index}`] ?? shade.hex}
                         onChange={(e) => handleColorInputChange(e.target.value, index)}
                         onFocus={() => setEditingIndex(index)}
-                        onBlur={() => setEditingIndex(null)}
+                        onBlur={() => {
+                          setEditingIndex(null);
+                          handleColorInputBlur(index);
+                        }}
                         className={`w-[4.5rem] px-1 py-0.5 text-xs font-mono border rounded text-white bg-jet-800 ${
                           editingIndex === index ? 'border-neon-500' : 'border-jet-700'
                         }`}

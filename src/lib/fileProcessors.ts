@@ -98,7 +98,7 @@ async function processPDF(
       context.fillRect(0, 0, canvas.width, canvas.height);
 
       try {
-        await page.render({ canvasContext: context, viewport }).promise;
+        await page.render({ canvas, canvasContext: context, viewport }).promise;
         return canvas.toDataURL('image/jpeg', 0.9);
       } finally {
         page.cleanup();

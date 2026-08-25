@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { pdfjsLib, loadPDFDocument } from '../lib/pdfjs';
 import PDFUploader from './PDFUploader';
 import PagePreview from './PagePreview';
@@ -41,6 +41,7 @@ export default function PDFThumbnailGenerator() {
       canvas.height = viewport.height * scale;
 
       await page.render({
+        canvas,
         canvasContext: context,
         viewport: page.getViewport({ scale }),
       }).promise;
@@ -50,30 +51,6 @@ export default function PDFThumbnailGenerator() {
       console.error(`Error generating preview for page ${pageNumber}:`, err);
       return null;
     }
-  }, []);
-
-  const resizeImage = useCallback((dataUrl: string, targetWidth: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        const aspectRatio = img.height / img.width;
-        canvas.width = targetWidth;
-        canvas.height = targetWidth * aspectRatio;
-
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = dataUrl;
-    });
   }, []);
 
   const convertFormat = useCallback(async (dataUrl: string, format: string, size: number): Promise<string> => {
@@ -203,6 +180,7 @@ export default function PDFThumbnailGenerator() {
           canvas.height = viewport.height * scale;
 
           await page.render({
+            canvas,
             canvasContext: context,
             viewport: page.getViewport({ scale }),
           }).promise;
@@ -228,7 +206,7 @@ export default function PDFThumbnailGenerator() {
     }
   };
 
-  const handleDownload = useCallback(async (dataUrl: string, pageNumber: number, format: string, size: number, filename: string) => {
+  const handleDownload = useCallback(async (dataUrl: string, _pageNumber: number, format: string, size: number, filename: string) => {
     try {
       const convertedImage = await convertFormat(dataUrl, format, size);
       const link = document.createElement('a');

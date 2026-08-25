@@ -1,39 +1,58 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Upload, X } from 'lucide-react';
+
+export type UploadKind = 'image' | 'pdf';
 
 interface FileUploaderProps {
   onFileSelect: (file: File | null) => void;
   currentFileName: string | null;
+  /** Which kinds of file this tool can actually handle. Defaults to both. */
+  accept?: UploadKind[];
 }
 
-const ACCEPTED_TYPES = {
-  'image/*': 'Images (JPEG, PNG, WebP, etc.)',
-  'application/pdf': 'PDF documents',
+const KIND_LABELS: Record<UploadKind, string> = {
+  image: 'Images (JPEG, PNG, WebP, etc.)',
+  pdf: 'PDF documents',
 };
 
-const ACCEPT_STRING = [...Object.keys(ACCEPTED_TYPES), '.pdf'].join(',');
+const KIND_ACCEPT: Record<UploadKind, string> = {
+  image: 'image/*',
+  pdf: 'application/pdf,.pdf',
+};
 
-function isAccepted(file: File): boolean {
+function matchesKind(file: File, kind: UploadKind): boolean {
+  if (kind === 'image') return file.type.startsWith('image/');
   // Some platforms hand over a PDF with an empty or non-standard MIME type, so
   // fall back to the extension before rejecting the file.
-  if (/\.pdf$/i.test(file.name)) return true;
-
-  return Object.keys(ACCEPTED_TYPES).some(type =>
-    type.endsWith('*') ? file.type.startsWith(type.slice(0, -1)) : file.type === type
-  );
+  return file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
 }
 
-export default function FileUploader({ onFileSelect, currentFileName }: FileUploaderProps) {
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
-    if (file && !isAccepted(file)) {
-      alert('Please select a supported file type:\n' + Object.values(ACCEPTED_TYPES).join('\n'));
-      return;
-    }
-    onFileSelect(file);
-  }, [onFileSelect]);
+export default function FileUploader({
+  onFileSelect,
+  currentFileName,
+  accept = ['image', 'pdf'],
+}: FileUploaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0] || null;
+      if (file && !accept.some(kind => matchesKind(file, kind))) {
+        alert(
+          'Please select a supported file type:\n' +
+            accept.map(kind => KIND_LABELS[kind]).join('\n')
+        );
+        event.target.value = '';
+        return;
+      }
+      onFileSelect(file);
+    },
+    [onFileSelect, accept]
+  );
 
   const handleClear = useCallback(() => {
+    // Without this, re-picking the same file fires no change event.
+    if (inputRef.current) inputRef.current.value = '';
     onFileSelect(null);
   }, [onFileSelect]);
 
@@ -62,17 +81,18 @@ export default function FileUploader({ onFileSelect, currentFileName }: FileUplo
                 Supported files:
               </p>
               <ul className="text-xs text-gray-400 list-disc list-inside">
-                {Object.values(ACCEPTED_TYPES).map((type) => (
-                  <li key={type}>{type}</li>
+                {accept.map((kind) => (
+                  <li key={kind}>{KIND_LABELS[kind]}</li>
                 ))}
               </ul>
             </>
           )}
         </div>
         <input
+          ref={inputRef}
           type="file"
           className="hidden"
-          accept={ACCEPT_STRING}
+          accept={accept.map(kind => KIND_ACCEPT[kind]).join(',')}
           onChange={handleFileChange}
         />
       </label>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link2, Copy, QrCode, Download } from 'lucide-react';
+import { useState } from 'react';
+import { Copy, QrCode, Download } from 'lucide-react';
 
 interface UTMParams {
   url: string;
@@ -23,15 +23,21 @@ export default function UTMBuilder() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [savedLinks, setSavedLinks] = useState<UTMParams[]>([]);
 
-  const generateURL = () => {
-    const url = new URL(params.url);
-    url.searchParams.set('utm_source', params.source.toLowerCase());
-    url.searchParams.set('utm_medium', params.medium.toLowerCase());
-    url.searchParams.set('utm_campaign', params.campaign.toLowerCase());
-    
-    if (params.term) url.searchParams.set('utm_term', params.term.toLowerCase());
-    if (params.content) url.searchParams.set('utm_content', params.content.toLowerCase());
-    
+  const generateURL = (from: UTMParams = params) => {
+    let url: URL;
+    try {
+      url = new URL(from.url);
+    } catch {
+      return from.url;
+    }
+
+    url.searchParams.set('utm_source', from.source.toLowerCase());
+    url.searchParams.set('utm_medium', from.medium.toLowerCase());
+    url.searchParams.set('utm_campaign', from.campaign.toLowerCase());
+
+    if (from.term) url.searchParams.set('utm_term', from.term.toLowerCase());
+    if (from.content) url.searchParams.set('utm_content', from.content.toLowerCase());
+
     return url.toString();
   };
 
@@ -227,7 +233,7 @@ export default function UTMBuilder() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => copyToClipboard(generateURL(), `saved-${index}`)}
+                    onClick={() => copyToClipboard(generateURL(link), `saved-${index}`)}
                     className="btn-icon-ghost"
                   >
                     <Copy className="w-4 h-4" />

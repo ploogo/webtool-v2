@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, Wand2, Zap, Shield, LayoutGrid, Code, Palette, Check } from 'lucide-react';
 
 interface HomePageProps {

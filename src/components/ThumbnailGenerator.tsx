@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import FileUploader from './FileUploader';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import FileUploader, { UploadKind } from './FileUploader';
 import PagePreview from './PagePreview';
 import GenerateButton from './GenerateButton';
 import ThumbnailGrid from './ThumbnailGrid';
@@ -12,6 +12,8 @@ import {
   PREVIEW_MAX_SIZE,
   THUMBNAIL_MAX_SIZE,
 } from '../lib/fileProcessors';
+
+const PDF_AND_IMAGES: UploadKind[] = ['pdf', 'image'];
 
 interface Thumbnail {
   pageNumber: number;
@@ -180,7 +182,7 @@ export default function ThumbnailGenerator() {
   };
 
   const handleDownload = useCallback(
-    async (dataUrl: string, pageNumber: number, format: string, size: number, filename: string) => {
+    async (dataUrl: string, _pageNumber: number, format: string, size: number, filename: string) => {
       try {
         const img = new Image();
         await new Promise((resolve, reject) => {
@@ -236,6 +238,7 @@ export default function ThumbnailGenerator() {
         <FileUploader
           onFileSelect={handleFileSelect}
           currentFileName={file?.name || null}
+          accept={PDF_AND_IMAGES}
         />
 
         {validationResult && !validationResult.isValid && (

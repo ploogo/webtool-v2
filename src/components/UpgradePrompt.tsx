@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuthStore, SubscriptionTier } from '../lib/store';
 import { ArrowRight, Check } from 'lucide-react';
 

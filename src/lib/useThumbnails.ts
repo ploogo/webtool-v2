@@ -26,13 +26,10 @@ export function useThumbnails(): UseThumbnailsReturn {
       setError(null);
 
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = loadPDFDocument(arrayBuffer);
-      
-      loadingTask.onPassword = (updatePassword, reason) => {
-        throw new Error('Password-protected PDFs are not supported.');
-      };
-
-      const pdf = await loadingTask.promise;
+      // With no onPassword handler pdf.js rejects with a PasswordException,
+      // which the catch below turns into a message. Throwing from inside the
+      // handler, as before, left the rejection unhandled.
+      const pdf = await loadPDFDocument(arrayBuffer).promise;
       const newThumbnails: Thumbnail[] = [];
       const sortedPages = Array.from(selectedPages).sort((a, b) => a - b);
 
@@ -52,6 +49,7 @@ export function useThumbnails(): UseThumbnailsReturn {
           canvas.height = viewport.height * scale;
 
           await page.render({
+            canvas,
             canvasContext: context,
             viewport: page.getViewport({ scale }),
           }).promise;
@@ -68,7 +66,14 @@ export function useThumbnails(): UseThumbnailsReturn {
 
       setThumbnails(newThumbnails);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate thumbnails');
+      const isPassword = err instanceof Error && err.name === 'PasswordException';
+      setError(
+        isPassword
+          ? 'Password-protected PDFs are not supported.'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to generate thumbnails'
+      );
       setThumbnails([]);
     } finally {
       setLoading(false);
