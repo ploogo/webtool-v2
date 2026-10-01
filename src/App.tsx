@@ -6,16 +6,17 @@ import ImageEditor from './components/ImageEditor';
 import TextCaseConverter from './components/TextCaseConverter';
 import MetaTagGenerator from './components/MetaTagGenerator';
 import ImageCompressor from './components/ImageCompressor';
+import ImageConverter from './components/ImageConverter';
 import SymbolsToolbar from './components/SymbolsToolbar';
 import ABTestCalculator from './components/analytics/ABTestCalculator';
 import UTMBuilder from './components/analytics/UTMBuilder';
 import SchemaGenerator from './components/SchemaGenerator';
 import { 
   FileText, Palette, Link, Crop, Type, Menu, X, Tags, Image, Hash, 
-  Calculator, Share2, Code, LayoutGrid
+  Calculator, Share2, Code, LayoutGrid, Repeat
 } from 'lucide-react';
 
-type ActiveTab = 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'symbols' | 'abtest' | 'utm' | 'schema';
+type ActiveTab = 'thumbnails' | 'color' | 'url' | 'image' | 'text' | 'meta' | 'compress' | 'convert' | 'symbols' | 'abtest' | 'utm' | 'schema';
 
 interface NavCategory {
   name: string;
@@ -39,6 +40,7 @@ export default function App() {
       items: [
         { id: 'thumbnails', name: 'PDF Thumbnails', icon: FileText, description: 'Generate thumbnails from PDF pages' },
         { id: 'compress', name: 'Image Compressor', icon: Image, description: 'Compress and optimize images' },
+        { id: 'convert', name: 'Image Converter', icon: Repeat, description: 'Convert SVG to PNG and remove backgrounds' },
         { id: 'image', name: 'Image Editor', icon: Crop, description: 'Crop and resize images' },
       ],
     },
@@ -167,6 +169,8 @@ export default function App() {
               <ThumbnailGenerator />
             ) : activeTab === 'compress' ? (
               <ImageCompressor />
+            ) : activeTab === 'convert' ? (
+              <ImageConverter />
             ) : activeTab === 'color' ? (
               <ColorShadeGenerator />
             ) : activeTab === 'url' ? (
